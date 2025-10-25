@@ -1,17 +1,24 @@
 #include <stdio.h>
+#include <stdlib.h>
 
-typedef struct {
-  char ID;
-  // hashtable to store info hash and its peer list for current node
-
-} DHTNode;
-
-typedef char (*peer_list)[4068];
-    // I don't know what to put here, maybe IP+Port
-    // for each peer
+#include "dynamic_array.h"
 
 int main(int arg, char **argv) {
-    printf("Bit torrent?\n");
+    dynamic_array *arr = new_array(sizeof(char));
+    if (arr == NULL) {
+        perror("dynamic array");
+        return 1;
+    }
+    char **data_ptr =(char **) arr->data;
+
+    data_ptr[0] = "wtf";
+    data_ptr[1] = "shit";
+
+    printf("[TEST]: %s\n", data_ptr[0]);
+    printf("[TEST]: %s\n", data_ptr[1]);
+
+    free(arr->data);
+    free(arr);
     return 0;
 }
 

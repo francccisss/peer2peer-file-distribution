@@ -33,6 +33,12 @@ typedef struct {
   uint16_t port;
 } peer_t;
 
+typedef struct {
+  size_t cap;
+  size_t len;
+  void *ptr; // can be used for any array type
+} array;
+
 
 uint32_t hash(const char *input) {
   char b;

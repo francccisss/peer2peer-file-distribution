@@ -1,7 +1,7 @@
-main:main.c 
-	gcc -o ./bin/main main.c
+build:main.c
+	gcc -o ./bin/main main.c dynamic_array.c
 
-main-bin:main
-	./bin/main
+go:./bin/main
+	gcc -o ./bin/main main.c dynamic_array.c && ./bin/main
 
 clean:
