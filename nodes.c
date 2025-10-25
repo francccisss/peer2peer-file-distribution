@@ -9,6 +9,12 @@
 #define MAX_NEIGHBORS 20
 
 
+/*
+ *  Functions and structs defined in should only be used by the DHT Nodes
+ */
+
+
+
 typedef struct {
   char *node_id; // corresponds to a node ID
   char *ip;      // used to send rpc via udp
@@ -60,6 +66,7 @@ uint32_t hash(const char *input) {
  * if (len is 80% of capacity){
  *  reallocate more memory
  * }
+ *
  */
 
 void set(peer_t (*table)[MAX_PEERS], const char *key, const peer_t data) {
@@ -88,12 +95,20 @@ void set(peer_t (*table)[MAX_PEERS], const char *key, const peer_t data) {
     table[hash_key][0] = data;
 }
 
-// coerce the type that you expect to retrieve from hashmap
-void *get(char *data[MAX_SIZE_ARRAY], const char *key, const unsigned long data_size) {
-  char *buf = malloc(data_size);
+/*
+ *
+ *  key represents the info_hash which is used as a peer_list entry to the table
+ *  it returns the list of peers within that network for the new node to connect to
+ *
+ */
+
+void get(const peer_t (*table)[MAX_PEERS], const char *key,peer_t *buf_ptr) {
   const uint32_t hash_key = hash(key);
-  strcpy(buf, data[hash_key]);
-  return buf;
+  const peer_t *buf = memcpy(buf_ptr,table[hash_key],sizeof(peer_t) * MAX_PEERS);
+  if (buf == NULL) {
+    perror("Unable to copy peer list unto buffer");
+    exit(EXIT_FAILURE);
+  }
 }
 
 
@@ -104,6 +119,14 @@ int main() {
     perror("malloc error"); return 1;
   };
   set(peer_table,"franz",(peer_t){.ip = "192",.id="francois",.port=3000});
+  peer_t *peer_list = malloc(sizeof(peer_t) * MAX_PEERS);
+  get(peer_table,"franz",peer_list);
+  printf("[TEST]: key: franz, value:");
+  for (int i = 0; i < MAX_PEERS; i++) {
+    printf("Location: %p",(void*)peer_list++);
+  }
+
+  free(peer_list);
   free(peer_table);
   return 0;
 }
