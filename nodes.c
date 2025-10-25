@@ -45,11 +45,23 @@ uint32_t hash(const char *input) {
 
 /*
  * Sets peers on each bucket of the hashmap
+ *
+ *
+ * TODO: need dynamic array for peers to allocate more memory for incoming peers when peer len > capacity of bucket
+ * change structure of bucket as a bucket type
+ *
+ * typedef struct {
+ *   peer_t *peer_ptr; // dynamically allocate size of peer_t array
+ *   size_t len;
+ *   size_t capacity;
+ * } bucket_t;
+ *
+ *
+ * if (len is 80% of capacity){
+ *  reallocate more memory
+ * }
  */
 
-// setting the same key will result in the same hash value
-// check if current bucket is empty or not (check first element if properties are not set to 0)
-// if current bucket is empty add then do nothing
 void set(peer_t (*table)[MAX_PEERS], const char *key, const peer_t data) {
   const uint32_t hash_key = hash(key);
   // current bucket is occupied given by hash
@@ -79,7 +91,7 @@ void set(peer_t (*table)[MAX_PEERS], const char *key, const peer_t data) {
 // coerce the type that you expect to retrieve from hashmap
 void *get(char *data[MAX_SIZE_ARRAY], const char *key, const unsigned long data_size) {
   char *buf = malloc(data_size);
-  uint32_t hash_key = hash(key);
+  const uint32_t hash_key = hash(key);
   strcpy(buf, data[hash_key]);
   return buf;
 }
@@ -89,13 +101,9 @@ int main() {
   peer_t (*peer_table)[MAX_PEERS] = malloc((sizeof(peer_t) * MAX_PEERS) * MAX_SIZE_ARRAY);
   // peer_t peer_table[MAX_SIZE_ARRAY][MAX_PEERS];
   if (peer_table == NULL) {
-    perror("malloc error");
-    return 1;
+    perror("malloc error"); return 1;
   };
   set(peer_table,"franz",(peer_t){.ip = "192",.id="francois",.port=3000});
   free(peer_table);
-  // base + MAX_PEERS * (sizeof(peer_t)*scale_index)
-  // access row if j is included in the expression
-  // base + (MAX_PEERS * (sizeof(peer_t)*scale_index) + j)
   return 0;
 }
