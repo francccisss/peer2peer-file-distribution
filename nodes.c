@@ -50,14 +50,30 @@ uint32_t hash(const char *input) {
 // setting the same key will result in the same hash value
 // check if current bucket is empty or not (check first element if properties are not set to 0)
 // if current bucket is empty add then do nothing
-void set(peer_t (*bucket)[MAX_SIZE_ARRAY], char *key) {
-  uint32_t hash_key = hash(key);
-  if (bucket[hash_key][hash_key].id != "") {
+void set(peer_t (*table)[MAX_PEERS], const char *key, const peer_t data) {
+  const uint32_t hash_key = hash(key);
+  // current bucket is occupied given by hash
+  if (table[hash_key][0].id != NULL  ) {
     size_t index = hash_key;
-    while (bucket[hash_key])
-
-
+    // iterate through the buckets using linear probing
+    while (index < MAX_SIZE_ARRAY) {
+      // if current bucket is not occupied
+      if (table[index][0].id== NULL) {
+        size_t j = 0;
+        // find space for new data to fit within the array bucket
+        while (j < MAX_PEERS) {
+          if (table[index][j].id == NULL ) {
+             table[index][j] = data;
+            break;
+          };
+          j++;
+        }
+        break;
+      };
+      index++;
+    };
   }
+    table[hash_key][0] = data;
 }
 
 // coerce the type that you expect to retrieve from hashmap
@@ -70,7 +86,13 @@ void *get(char *data[MAX_SIZE_ARRAY], const char *key, const unsigned long data_
 
 
 int main() {
-  peer_t (*peer_table)[MAX_PEERS]= malloc((sizeof(peer_t) * MAX_PEERS) * MAX_SIZE_ARRAY);
+  peer_t (*peer_table)[MAX_PEERS] = malloc((sizeof(peer_t) * MAX_PEERS) * MAX_SIZE_ARRAY);
+  // peer_t peer_table[MAX_SIZE_ARRAY][MAX_PEERS];
+  if (peer_table == NULL) {
+    perror("malloc error");
+    return 1;
+  };
+  set(peer_table,"franz",(peer_t){.ip = "192",.id="francois",.port=3000});
   free(peer_table);
   // base + MAX_PEERS * (sizeof(peer_t)*scale_index)
   // access row if j is included in the expression
