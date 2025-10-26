@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "nodes.h"
 #define HASH_OFFSET 2166136261u
 #define PRIME 16777619u
 #define MAX_SIZE_ARRAY 1000
@@ -12,33 +13,6 @@
 /*
  *  Functions and structs defined in should only be used by the DHT Nodes
  */
-
-
-
-typedef struct {
-  char *node_id; // corresponds to a node ID
-  char *ip;      // used to send rpc via udp
-  u_int16_t port;
-} neighbor_t;
-
-typedef struct {
-  neighbor_t neighbors[MAX_NEIGHBORS]; // subset properties of a node
-  char *id;
-} node_t;
-
-
-typedef struct {
-  char *ip;
-  char *id;
-  uint16_t port;
-} peer_t;
-
-typedef struct {
-  size_t cap;
-  size_t len;
-  void *ptr; // can be used for any array type
-} array;
-
 
 uint32_t hash(const char *input) {
   char b;
@@ -118,7 +92,7 @@ void get(const peer_t (*table)[MAX_PEERS], const char *key,peer_t *buf_ptr) {
 }
 
 
-int main() {
+int test_bench() {
   peer_t (*peer_table)[MAX_PEERS] = malloc((sizeof(peer_t) * MAX_PEERS) * MAX_SIZE_ARRAY);
   // peer_t peer_table[MAX_SIZE_ARRAY][MAX_PEERS];
   if (peer_table == NULL) {

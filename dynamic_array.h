@@ -1,13 +1,16 @@
 #include <stddef.h>
+#include "nodes.h"
 #ifndef DYNAMIC_ARRAY_H
 #define DYNAMIC_ARRAY_H
 
+#define INITIAL_CAP 8
 // accessing cap and len by back tracking base pointer of data multiplied by offsets
 typedef struct {
     size_t cap;
     size_t len;
-    void **data;
-}dynamic_array;
+    peer_t (*data)[INITIAL_CAP];
+} peer_arr_t;
+
 
 
 /*
@@ -15,9 +18,9 @@ typedef struct {
  * Always free the array after using
  */
 
-dynamic_array *new_array(size_t obj_size);
+peer_arr_t *new_array();
 
-void resize(dynamic_array*d_arr, size_t cap, size_t obj_size);
+void resize(peer_arr_t*d_arr, size_t cap);
 
 
 
