@@ -34,11 +34,12 @@ void resize(peer_arr_t *d_arr) {
     // pointing to a block of memory
     void* ptr = realloc((*d_arr->data), (d_arr->cap * sizeof(peer_t))*twice);
     if (ptr == NULL) {
-        free(ptr);
         perror("[ERROR]: realloc");
         exit(1);
     }
-    d_arr = ptr;
+
+    d_arr->data = ptr; // data should be pointing to the reallocated memory
+
     printf("[TEST]: OLD cap=%ld\n",d_arr->cap);
     d_arr->cap = d_arr->cap * twice; // double the size of the capacity of the array
     printf("[TEST]: NEW cap=%ld\n",d_arr->cap);

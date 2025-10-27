@@ -4,7 +4,6 @@
 #define DYNAMIC_ARRAY_H
 
 #define INITIAL_CAP 8
-// accessing cap and len by back tracking base pointer of data multiplied by offsets
 typedef struct {
     size_t cap;
     size_t len;
@@ -20,7 +19,12 @@ typedef struct {
 
 peer_arr_t *new_array();
 
-void resize(peer_arr_t*d_arr, size_t cap);
+void resize(peer_arr_t*d_arr);
+
+// auto resize
+// if pushing directly from d_arr->data, overflow might not get caught so handle seg fault
+void push(peer_arr_t *d_arr, const peer_t *data) ;
+peer_t *pop(peer_arr_t *d_arr);
 
 
 
