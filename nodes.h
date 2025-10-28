@@ -1,7 +1,3 @@
-//
-// Created by francis on 10/26/25.
-//
-
 #ifndef NODE_H
 #define NODE_H
 
