@@ -5,8 +5,6 @@
 #include "nodes.h"
 #define HASH_OFFSET 2166136261u
 #define PRIME 16777619u
-#define MAX_SIZE_ARRAY 1000
-#define MAX_NEIGHBORS 20
 
 
 /*
@@ -57,25 +55,24 @@ uint32_t hash(const char *input) {
 // if so then add the new data in there
 
 
-void set(bucket_t (*table)[MAX_SIZE_ARRAY], const char *key, peer_t data) {
+void set(bucket_t *(*table)[MAX_SIZE_ARRAY], const char *key, peer_t data) {
   const uint32_t hash_key = hash(key);
   // current bucket is occupied given by hash
-  if (table[hash_key]->len > 0 ) {
-    size_t index = hash_key;
-    // iterate through the buckets using linear probing
-    while (index < MAX_SIZE_ARRAY) {
-      // if current bucket is not occupied
-      if (table[index]->len == 0) {
-        table[index]->key =hash_key;
-        push(table[hash_key],data);
-        break;
-      };
-      index++;
-    };
+   printf("[TEST]: bucket key value: %d",(*table)[hash_key]->key);
+  if ((*table)[hash_key]->key == hash_key){
+    push((*table)[hash_key],data);
     return;
   }
-  table[hash_key]->key =hash_key;
-  push(table[hash_key],data);
+    size_t index = hash_key + 1;
+    while (index < MAX_SIZE_ARRAY){
+        if ((*table)[index]->len == 0) {
+          (*table)[index]->key = index;
+          push((*table)[index],data);
+          return;
+        };
+        index++;
+    };
+   printf("[ERROR]: exhausted the table of buckets\n");
 }
 
 /*
@@ -86,15 +83,15 @@ void set(bucket_t (*table)[MAX_SIZE_ARRAY], const char *key, peer_t data) {
  */
 
 void get(const peer_t (*table)[], const char *key, bucket_t *peers_buf) {
-  const uint32_t hash_key = hash(key);
-  const peer_t *buf = memcpy(peers_buf,table[hash_key],sizeof(peer_t) * INITIAL_CAP);
-  if (buf == NULL) {
-    perror("Unable to copy peer list unto buffer");
-    exit(EXIT_FAILURE);
-  }
+  // const uint32_t hash_key = hash(key);
+  // const peer_t *buf = memcpy(peers_buf,table[hash_key],sizeof(peer_t) * INITIAL_CAP);
+  // if (buf == NULL) {
+  //   perror("Unable to copy peer list unto buffer");
+  //   exit(EXIT_FAILURE);
+  // }
 }
 
-bucket_t *new_array() {
+bucket_t* new_array() {
   bucket_t *dyn_arr = malloc(sizeof(bucket_t));
   if (dyn_arr == NULL)
     return NULL;

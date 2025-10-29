@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #define HASH_OFFSET 2166136261u
 #define PRIME 16777619u
-#define MAX_SIZE_ARRAY 1000
+#define MAX_SIZE_ARRAY 10
 #define INITIAL_CAP 8
 #define MAX_NEIGHBORS 20
 
@@ -41,8 +41,8 @@ typedef struct {
     peer_t (*data)[INITIAL_CAP];
 } bucket_t;
 
-void set(bucket_t (*table)[MAX_SIZE_ARRAY], const char *key, peer_t data);
-void get(const peer_t (*table)[INITIAL_CAP], const char *key, bucket_t *peers_buf);
+void set(bucket_t *(*table)[MAX_SIZE_ARRAY], const char *key, peer_t data);
+void get(const peer_t (*table)[], const char *key, bucket_t *peers_buf);
 uint32_t hash(const char *input);
 
 bucket_t *new_array();
