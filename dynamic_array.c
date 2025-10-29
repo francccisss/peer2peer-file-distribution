@@ -14,11 +14,9 @@ peer_arr_t *new_array() {
   peer_arr_t *dyn_arr = malloc(sizeof(peer_arr_t));
   if (dyn_arr == NULL)
     return NULL;
-
   peer_t(*arr)[INITIAL_CAP] = malloc(sizeof(peer_t) * INITIAL_CAP);
   if (arr == NULL)
     return NULL;
-
   dyn_arr->data = arr;
   dyn_arr->len = 0;
   dyn_arr->cap = INITIAL_CAP;
@@ -30,7 +28,7 @@ peer_arr_t *new_array() {
 // this function will be called within push function, to auto resize
 // on pushing new items in the array
 void resize(peer_arr_t *d_arr) {
-  size_t twice = 2;
+  constexpr size_t twice = 2;
   // pointing to a block of memory
   void *ptr = realloc((*d_arr->data), (d_arr->cap * sizeof(peer_t)) * twice);
   if (ptr == NULL) {
@@ -46,21 +44,30 @@ void resize(peer_arr_t *d_arr) {
   printf("[TEST]: NEW cap=%ld\n", d_arr->cap);
 }
 
-void push(peer_arr_t *d_arr, const peer_t *data) {
+void push(peer_arr_t *d_arr, const peer_t data) {
   if (d_arr->len == d_arr->cap) {
     resize(d_arr);
   }
-  peer_t *end_ptr = (*d_arr->data) + (sizeof(peer_t) * d_arr->len);
-  memcpy(end_ptr, data, sizeof(peer_t));
+  // d_arr->data +1;
+  // increments the pointer by its stride N * sizeof(peer_t)
+  // (*d_arr->data)[0];
+  // increments from the array itself by sizeof(peer_t)
+  peer_t *end_ptr = &(*d_arr->data)[d_arr->len];
+  memcpy(end_ptr, &data, sizeof(peer_t));
   d_arr->len++;
   printf("[TEST]: NEW len=%ld\n", d_arr->len);
   printf("[TEST]: cap=%ld\n", d_arr->cap);
 }
 
-void pop(peer_arr_t *d_arr, peer_t *buf) {
-  peer_t *end_ptr = &(*d_arr->data)[d_arr->len - 1];
-  printf("[TEST]: end of array =%s\n", end_ptr->id);
-  buf = end_ptr;
-  end_ptr = nullptr;
+void pop(peer_arr_t *d_arr, const peer_t *peer_buf) {
 
+  printf("[TEST]: buf =%d\n", peer_buf->port);
+if (d_arr->len < 1){
+  printf("[INFO]: Array is empty");
+  return;
+}
+  // does not make sense
+  peer_buf = d_arr->data[d_arr->len - 1];
+  printf("[TEST]: end of array =%s\n", peer_buf->id);
+  d_arr->len--;
 }

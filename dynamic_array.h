@@ -20,8 +20,8 @@ typedef struct {
 
 peer_arr_t *new_array();
 void resize(peer_arr_t*d_arr);
-void push(peer_arr_t *d_arr, const peer_t *data) ;
-void pop(peer_arr_t *d_arr,peer_t *peer_buf);
+void push(peer_arr_t *d_arr, peer_t data) ;
+void pop(peer_arr_t *d_arr,const peer_t *peer_buf);
 
 
 
