@@ -2,12 +2,11 @@
 #define NODE_H
 
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
 #define HASH_OFFSET 2166136261u
 #define PRIME 16777619u
 #define MAX_SIZE_ARRAY 1000
-#define MAX_PEERS 20 // max peers per info_hash?
+#define INITIAL_CAP 8
 #define MAX_NEIGHBORS 20
 
 
@@ -41,8 +40,8 @@ typedef struct {
     void *ptr; // can be used for any array type
 } array;
 
-void set(peer_t (*table)[MAX_PEERS], const char *key, peer_t data);
-void get(const peer_t (*table)[MAX_PEERS], const char *key,peer_t *buf_ptr);
+void set(peer_t (*table)[INITIAL_CAP], const char *key, peer_t data);
+void get(const peer_t (*table)[INITIAL_CAP], const char *key, peer_t *peer_buf);
 uint32_t hash(const char *input);
 
 #endif

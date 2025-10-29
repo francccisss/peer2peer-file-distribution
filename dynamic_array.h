@@ -4,7 +4,6 @@
 #ifndef DYNAMIC_ARRAY_H
 #define DYNAMIC_ARRAY_H
 
-#define INITIAL_CAP 8
 typedef struct {
     size_t cap;
     size_t len; // always access last element at len-1 because of 0 indexing

@@ -1,16 +1,21 @@
 #include "dynamic_array.h"
 #include "nodes.h"
+#include <stdio.h>
 
 int main(int argc, char *argv[]) {
-  peer_arr_t *arr = new_array();
+  peer_t (*peer_table)[INITIAL_CAP] = malloc((sizeof(peer_t) * INITIAL_CAP) * MAX_SIZE_ARRAY);
+  if (peer_table == NULL) {
+    perror("malloc error"); return 1;
+  };
+
+  set(peer_table,"franz",(peer_t){.ip = "192",.id="francois",.port=3000});
+  peer_t *peer_list = malloc(sizeof(peer_t) * INITIAL_CAP);
+  get(peer_table,"franz",peer_list);
+  printf("[TEST]: key: franz, value:");
   for (int i = 0; i < INITIAL_CAP; i++) {
-    const peer_t new_peer = {.ip = "192.168.1.1", .port = i};
-    push(arr, new_peer);
+    printf("Location: %p",(void*)peer_list++);
   }
 
-  for (int i = 0; i < INITIAL_CAP+1; i++) {
-    peer_t peer_buf;
-    pop(arr, &peer_buf);
-  }
-  return 0;
+  free(peer_list);
+  free(peer_table);
 };

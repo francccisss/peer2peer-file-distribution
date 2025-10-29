@@ -6,7 +6,6 @@
 #define HASH_OFFSET 2166136261u
 #define PRIME 16777619u
 #define MAX_SIZE_ARRAY 1000
-#define MAX_PEERS 20 // max peers per info_hash?
 #define MAX_NEIGHBORS 20
 
 
@@ -49,7 +48,7 @@ uint32_t hash(const char *input) {
  *
  */
 
-void set(peer_t (*table)[MAX_PEERS], const char *key, const peer_t data) {
+void set(peer_t (*table)[INITIAL_CAP], const char *key, const peer_t data) {
   const uint32_t hash_key = hash(key);
   // current bucket is occupied given by hash
   if (table[hash_key][0].id != NULL  ) {
@@ -60,7 +59,7 @@ void set(peer_t (*table)[MAX_PEERS], const char *key, const peer_t data) {
       if (table[index][0].id== NULL) {
         size_t j = 0;
         // find space for new data to fit within the array bucket
-        while (j < MAX_PEERS) {
+        while (j < INITIAL_CAP) {
           if (table[index][j].id == NULL ) {
              table[index][j] = data;
             break;
@@ -82,31 +81,11 @@ void set(peer_t (*table)[MAX_PEERS], const char *key, const peer_t data) {
  *
  */
 
-void get(const peer_t (*table)[MAX_PEERS], const char *key,peer_t *buf_ptr) {
+void get(const peer_t (*table)[INITIAL_CAP], const char *key, peer_t *peer_buf) {
   const uint32_t hash_key = hash(key);
-  const peer_t *buf = memcpy(buf_ptr,table[hash_key],sizeof(peer_t) * MAX_PEERS);
+  const peer_t *buf = memcpy(peer_buf,table[hash_key],sizeof(peer_t) * INITIAL_CAP);
   if (buf == NULL) {
     perror("Unable to copy peer list unto buffer");
     exit(EXIT_FAILURE);
   }
-}
-
-
-int test_bench() {
-  peer_t (*peer_table)[MAX_PEERS] = malloc((sizeof(peer_t) * MAX_PEERS) * MAX_SIZE_ARRAY);
-  // peer_t peer_table[MAX_SIZE_ARRAY][MAX_PEERS];
-  if (peer_table == NULL) {
-    perror("malloc error"); return 1;
-  };
-  set(peer_table,"franz",(peer_t){.ip = "192",.id="francois",.port=3000});
-  peer_t *peer_list = malloc(sizeof(peer_t) * MAX_PEERS);
-  get(peer_table,"franz",peer_list);
-  printf("[TEST]: key: franz, value:");
-  for (int i = 0; i < MAX_PEERS; i++) {
-    printf("Location: %p",(void*)peer_list++);
-  }
-
-  free(peer_list);
-  free(peer_table);
-  return 0;
 }
