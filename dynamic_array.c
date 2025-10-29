@@ -6,10 +6,6 @@
 
 #include "nodes.h"
 
-/*
- * don't use with hashmaps, the hash value
- */
-
 peer_arr_t *new_array() {
   peer_arr_t *dyn_arr = malloc(sizeof(peer_arr_t));
   if (dyn_arr == NULL)
@@ -20,7 +16,6 @@ peer_arr_t *new_array() {
   dyn_arr->data = arr;
   dyn_arr->len = 0;
   dyn_arr->cap = INITIAL_CAP;
-
   return dyn_arr;
 };
 
@@ -54,19 +49,13 @@ void push(peer_arr_t *d_arr, const peer_t data) {
   // increments from the array itself by sizeof(peer_t)
   memcpy(&(*d_arr->data)[d_arr->len], &data, sizeof(peer_t));
   d_arr->len++;
-  printf("[TEST]: NEW len=%ld\n", d_arr->len);
-  printf("[TEST]: cap=%ld\n", d_arr->cap);
 }
 
 void pop(peer_arr_t *d_arr, peer_t *peer_buf) {
-
-  printf("[TEST]: buf =%d\n", peer_buf->port);
   if (d_arr->len < 1){
-    printf("[INFO]: Array is empty");
     return;
   }
   *peer_buf = (*d_arr->data)[d_arr->len - 1];
-  printf("[TEST]: end of array =%s\n", peer_buf->id);
   (*d_arr->data)[d_arr->len - 1] = (peer_t){0};
   d_arr->len--;
 }

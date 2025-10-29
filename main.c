@@ -7,7 +7,10 @@ int main(int argc, char *argv[]) {
     const peer_t new_peer = {.ip = "192.168.1.1", .port = i};
     push(arr, new_peer);
   }
-  peer_t peer_buf;
-pop(arr, &peer_buf);
+
+  for (int i = 0; i < INITIAL_CAP+1; i++) {
+    peer_t peer_buf;
+    pop(arr, &peer_buf);
+  }
   return 0;
 };
