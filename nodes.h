@@ -35,13 +35,20 @@ typedef struct {
 } peer_t;
 
 typedef struct {
+    uint32_t key;
     size_t cap;
-    size_t len;
-    void *ptr; // can be used for any array type
-} array;
+    size_t len; // always access last element at len-1 because of 0 indexing
+    peer_t (*data)[INITIAL_CAP];
+} bucket_t;
 
-void set(peer_t (*table)[INITIAL_CAP], const char *key, peer_t data);
-void get(const peer_t (*table)[INITIAL_CAP], const char *key, peer_t *peer_buf);
+void set(bucket_t (*table)[MAX_SIZE_ARRAY], const char *key, peer_t data);
+void get(const peer_t (*table)[INITIAL_CAP], const char *key, bucket_t *peers_buf);
 uint32_t hash(const char *input);
 
+bucket_t *new_array();
+void resize(bucket_t*d_arr);
+void push(bucket_t *d_arr, peer_t data) ;
+void pop(bucket_t *d_arr, peer_t *peer_buf);
+
 #endif
+
