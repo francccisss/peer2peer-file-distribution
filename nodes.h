@@ -30,8 +30,8 @@ typedef struct {
 
 
 typedef struct {
-    char *ip;
-    char *id;
+    char ip[15];
+    char id[46];
     uint16_t port;
 } peer_t;
 

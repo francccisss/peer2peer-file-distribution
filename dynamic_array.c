@@ -52,22 +52,21 @@ void push(peer_arr_t *d_arr, const peer_t data) {
   // increments the pointer by its stride N * sizeof(peer_t)
   // (*d_arr->data)[0];
   // increments from the array itself by sizeof(peer_t)
-  peer_t *end_ptr = &(*d_arr->data)[d_arr->len];
-  memcpy(end_ptr, &data, sizeof(peer_t));
+  memcpy(&(*d_arr->data)[d_arr->len], &data, sizeof(peer_t));
   d_arr->len++;
   printf("[TEST]: NEW len=%ld\n", d_arr->len);
   printf("[TEST]: cap=%ld\n", d_arr->cap);
 }
 
-void pop(peer_arr_t *d_arr, const peer_t *peer_buf) {
+void pop(peer_arr_t *d_arr, peer_t *peer_buf) {
 
   printf("[TEST]: buf =%d\n", peer_buf->port);
-if (d_arr->len < 1){
-  printf("[INFO]: Array is empty");
-  return;
-}
-  // does not make sense
-  peer_buf = d_arr->data[d_arr->len - 1];
+  if (d_arr->len < 1){
+    printf("[INFO]: Array is empty");
+    return;
+  }
+  *peer_buf = (*d_arr->data)[d_arr->len - 1];
   printf("[TEST]: end of array =%s\n", peer_buf->id);
+  (*d_arr->data)[d_arr->len - 1] = (peer_t){0};
   d_arr->len--;
 }
