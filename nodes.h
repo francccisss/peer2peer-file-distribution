@@ -35,6 +35,7 @@ typedef struct {
 } peer_t;
 
 typedef struct {
+    bool active;
     uint32_t key;
     size_t cap;
     size_t len; // always access last element at len-1 because of 0 indexing

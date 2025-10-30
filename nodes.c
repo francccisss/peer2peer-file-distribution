@@ -89,14 +89,25 @@ void set(bucket_t *(*table)[MAX_SIZE_ARRAY], const char *key, const peer_t data)
  */
 
 
-/// FRANCIS REMEMBER WHEN USING *(*TABLE)[SOME_SIZE] THE GOAL IS NOT TO
-/// INCREMENT THE POINTER, BUT THE POINTERS WITHIN THE OUTER POINTER
-/// AND ALSO WHEN USING (*TABLE)[SOME_SIZE] MEANS WE WANT TO BE ABLE TO
-/// DYNAMICALLY ALLOCATE THE TABLE OF SOME_SIZE * DATA TYPE, WHICH MEANS
-/// TO ACCESS EACH DYNAMICALLY ALLOCATED DATA WE NEED TO INCREMENT THE POINTER
-void get(bucket_t *(*table)[MAX_SIZE_ARRAY], const char *key, bucket_t **bucket_buf) {
+/// This is bad, because the insertion in this hashmap, where 2 keys might collide
+/// which results into a linear probing, so insertion time == retrieval time as insertion increases linearly
+void get(bucket_t *(*table)[MAX_SIZE_ARRAY], const char *key, bucket_t **bucket_buf)
+{
   const uint32_t hash_key = hash(key);
-  *bucket_buf = (*table)[hash_key];
+  uint32_t current_key = (*table)[hash_key]->key;
+  do
+  {
+    if (hash_key == current_key)
+    {
+      *bucket_buf = (*table)[hash_key];
+      return;
+    }
+    current_key++;
+  }
+  while (current_key < MAX_SIZE_ARRAY);
+
+  // (current_key...MAX_SIZE_ARRAY-1) yikes
+  printf("[INFO]: bucket does not exist");
 }
 
 bucket_t* new_array() {
