@@ -42,7 +42,7 @@ typedef struct {
 } bucket_t;
 
 void set(bucket_t *(*table)[MAX_SIZE_ARRAY], const char *key, peer_t data);
-void get(const peer_t (*table)[], const char *key, bucket_t *peers_buf);
+void get(bucket_t *(*table)[MAX_SIZE_ARRAY], const char *key,  bucket_t **bucket_buf);
 uint32_t hash(const char *input);
 
 bucket_t *new_array();

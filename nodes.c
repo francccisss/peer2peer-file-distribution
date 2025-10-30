@@ -20,7 +20,7 @@ uint32_t hash(const char *input) {
   }
 
   printf("hash value=%d\n", hash);
-  printf("hash mod value=%d \n", hash % MAX_SIZE_ARRAY);
+  printf("hash mod value=%d\n", hash % MAX_SIZE_ARRAY);
 
   return hash % MAX_SIZE_ARRAY;
 }
@@ -55,40 +55,48 @@ uint32_t hash(const char *input) {
 // if so then add the new data in there
 
 
-void set(bucket_t *(*table)[MAX_SIZE_ARRAY], const char *key, peer_t data) {
+void set(bucket_t *(*table)[MAX_SIZE_ARRAY], const char *key, const peer_t data) {
   const uint32_t hash_key = hash(key);
   // current bucket is occupied given by hash
-   printf("[TEST]: bucket key value: %d",(*table)[hash_key]->key);
-  if ((*table)[hash_key]->key == hash_key){
-    push((*table)[hash_key],data);
-    return;
-  }
+   printf("[TEST]: bucket key value: %d\n",(*table)[hash_key]->key);
+  // just because it's not equal doesn't mean it does not exist
+
+  /// does a bucket with this hash_key exist
+  if ((*table)[hash_key]->active)
+  {
+    if ((*table)[hash_key]->key == hash_key){
+      push((*table)[hash_key],data);
+      return;
+    }
     size_t index = hash_key + 1;
     while (index < MAX_SIZE_ARRAY){
-        if ((*table)[index]->len == 0) {
-          (*table)[index]->key = index;
-          push((*table)[index],data);
-          return;
-        };
-        index++;
+      if ((*table)[index]->len == 0) {
+        (*table)[index]->key = index;
+        push((*table)[index],data);
+        return;
+      };
+      index++;
     };
-   printf("[ERROR]: exhausted the table of buckets\n");
+  }
+  (*table)[hash_key]->key = hash_key;
+  (*table)[hash_key]->active = true;
+  push((*table)[hash_key],data);
 }
 
 /*
- *
- *  key represents the info_hash which is used as a peer_list entry to the table
+ *  key represents the info_hash which is used as a bucket entry to the hash table,
  *  it returns the list of peers within that network for the new node to connect to
- *
  */
 
-void get(const peer_t (*table)[], const char *key, bucket_t *peers_buf) {
-  // const uint32_t hash_key = hash(key);
-  // const peer_t *buf = memcpy(peers_buf,table[hash_key],sizeof(peer_t) * INITIAL_CAP);
-  // if (buf == NULL) {
-  //   perror("Unable to copy peer list unto buffer");
-  //   exit(EXIT_FAILURE);
-  // }
+
+/// FRANCIS REMEMBER WHEN USING *(*TABLE)[SOME_SIZE] THE GOAL IS NOT TO
+/// INCREMENT THE POINTER, BUT THE POINTERS WITHIN THE OUTER POINTER
+/// AND ALSO WHEN USING (*TABLE)[SOME_SIZE] MEANS WE WANT TO BE ABLE TO
+/// DYNAMICALLY ALLOCATE THE TABLE OF SOME_SIZE * DATA TYPE, WHICH MEANS
+/// TO ACCESS EACH DYNAMICALLY ALLOCATED DATA WE NEED TO INCREMENT THE POINTER
+void get(bucket_t *(*table)[MAX_SIZE_ARRAY], const char *key, bucket_t **bucket_buf) {
+  const uint32_t hash_key = hash(key);
+  *bucket_buf = (*table)[hash_key];
 }
 
 bucket_t* new_array() {
