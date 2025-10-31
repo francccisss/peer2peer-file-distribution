@@ -1,25 +1,18 @@
 #ifndef NODES_H
 #define NODES_H
+
 #include <stdbool.h>
+#include <stdint.h>
 #define MAX_NEIGHBORS 20
 
-#include <stdint.h>
+typedef struct node_t node_t;
 
-// subset properties of a node
-typedef struct {
-  char *node_id; // corresponds to a node ID
-  char *ip;      // used to send rpc via udp
+struct node_t {
+  char *id;
+  char *ip; // used to send rpc via udp
   uint16_t port;
-} neighbor_t;
-
-typedef struct {
-
-    char *id;
-    char *ip; // used to send rpc via udp
-    uint16_t port;
-  neighbor_t neighbors[MAX_NEIGHBORS]; // bootstrapped
-} node_t;
-
+  node_t *(*neighbors)[MAX_NEIGHBORS]; // bootstrapped
+};
 /*
  * returns back an array of neighbors within close proximity to the file
  * object's info_hash this
@@ -30,7 +23,7 @@ typedef struct {
  * - no neighbors
  */
 
-void compare_hash(neighbor_t (*neighbors)[MAX_NEIGHBORS], char *info_hash,
+void compare_hash(node_t (*neighbors)[MAX_NEIGHBORS], char *info_hash,
                   char *node_id);
 
 /*
@@ -57,11 +50,11 @@ void compare_hash(neighbor_t (*neighbors)[MAX_NEIGHBORS], char *info_hash,
  *     return_peers(bucket_buf)
  *  }
  *  else{
- *     compare_hash(&neighbors_ptr, info_hash); 
- *     get_peers(&neighbors_ptr, info_hash);   
+ *     compare_hash(&neighbors_ptr, info_hash);
+ *     get_peers(&neighbors_ptr, info_hash);
  *   }
  *
  */
-void get_peers(neighbor_t (*neighbors)[MAX_NEIGHBORS], char *info_hash);
+void get_peers(node_t (*neighbors)[MAX_NEIGHBORS], char *info_hash);
 
 #endif
