@@ -10,6 +10,13 @@
  *  Functions and structs defined in here should only be used by the peer_table
  */
 
+void init_table(bucket_t *(*unint_table)[MAX_SIZE_ARRAY]) {
+  // Initializing node's peer table
+  for (int i = 0; i < MAX_SIZE_ARRAY; ++i) {
+    (*unint_table)[i] = new_array();
+  };
+};
+
 uint32_t hash(const char *input) {
   char b;
   uint32_t hash = HASH_OFFSET;
@@ -23,35 +30,6 @@ uint32_t hash(const char *input) {
 
   return hash % MAX_SIZE_ARRAY;
 }
-
-/*
- * Sets peers on each bucket of the hashmap
- *
- *
- * TODO: need dynamic array for peers to allocate more memory for incoming peers
- * when peer len > capacity of bucket change structure of bucket as a bucket
- * type
- *
- * typedef struct {
- *   peer_t *peer_ptr; // dynamically allocate size of peer_t array
- *   size_t len;
- *   size_t capacity;
- * } bucket_t;
- *
- *
- * if (len is 80% of capacity){
- *  reallocate more memory
- * }
- *
- */
-
-// TODO:
-// Handling linear probing identification:
-// say #sdka & #dkfi has the same key
-// eg: key = 4 since #sdka already occupies the 5th bucket
-// we need to iterate until we find an available bucket that
-// has not been occupied yet eg: len == 0
-// if so then add the new data in there
 
 void set(bucket_t *(*table)[MAX_SIZE_ARRAY], const char *key,
          const peer_t data) {
