@@ -1,34 +1,42 @@
-#include "nodes.h"
-#include "peer_table.h"
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
 
-struct sockaddr sockaddr;
 int main(int argc, char *argv[]) {
+  struct sockaddr_in server;
 
-  bucket_t *table[MAX_SIZE_ARRAY];
-  init_table(&table);
-  node_t dht_node = {};
   int s_fd = socket(AF_INET, SOCK_DGRAM, 0);
 
-  struct sockaddr sock;
+  memset(&server, 0, sizeof(struct sockaddr));
 
-  memset(&sock, 0, sizeof(sockaddr));
+  server.sin_family = AF_INET;
+  server.sin_port = htons(6969);
+  server.sin_addr.s_addr = INADDR_ANY;
 
-  int r = bind(s_fd, &sock, sizeof(sockaddr));
+  if (bind(s_fd, (struct sockaddr *)&server, sizeof(server)) < 0) {
+    perror("[SOCKET ERROR]:");
+    exit(1);
+  }
 
-  while (true) {
-    int r = listen(s_fd, 1);
-    if (r < 0) {
-      perror("[LIS ERROR]:");
-			break;
-    }
+  if (listen(s_fd, 1) < 0) {
+    perror("[LIS ERROR]:");
+    exit(1);
+  }
+  printf("[INFO]: Listening from port:6969\n");
+  struct sockaddr_storage storage;
+  socklen_t stor_sze = sizeof storage;
+  int c_sd = 0;
+  while (c_sd >= 0) {
+    printf("[INFO]: Accepting connections\n");
+    c_sd = accept(s_fd, (struct sockaddr *)&storage, &stor_sze);
   }
 
   if (s_fd < 0) {
     perror("[SOCKET ERROR]:");
     exit(1);
   }
-
 };
