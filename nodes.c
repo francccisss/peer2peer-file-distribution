@@ -1,7 +1,23 @@
 #include "nodes.h"
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
-void compare_hash(node_t (*neighbors)[MAX_NEIGHBORS], char *hash_info,
-                  char *node_id) {};
+void compare_hash(node_t **neighbors, char *hash_info, char *node_id) {};
+
+void bootstrap_neigbors(node_t **boot_neighbors, size_t n_count,
+                        node_t **node_neighbors) {
 
 
-
+  *node_neighbors = malloc(sizeof(node_t) * n_count);
+  for (int i = 0; i < n_count; i++) {
+    printf("%d\n", i);
+    void *l = memcpy(&node_neighbors[0][i], &boot_neighbors[0][i],
+                     sizeof(node_t));
+    if (l == NULL) {
+      break;
+    }
+  }
+};

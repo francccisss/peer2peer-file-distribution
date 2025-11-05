@@ -2,6 +2,7 @@
 #define NODES_H
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 #define MAX_NEIGHBORS 20
 
@@ -11,7 +12,7 @@ struct node_t {
   char *id;
   char *ip; // used to send rpc via udp
   uint16_t port;
-  node_t *(*neighbors)[MAX_NEIGHBORS]; // bootstrapped
+  node_t **neighbors; // bootstrapped
 };
 /*
  * returns back an array of neighbors within close proximity to the file
@@ -23,8 +24,7 @@ struct node_t {
  * - no neighbors
  */
 
-void compare_hash(node_t (*neighbors)[MAX_NEIGHBORS], char *info_hash,
-                  char *node_id);
+void compare_hash(node_t **neighbors, char *info_hash, char *node_id);
 
 /*
  * responsible for connecting to the neigbors that are within close proximity
@@ -55,6 +55,10 @@ void compare_hash(node_t (*neighbors)[MAX_NEIGHBORS], char *info_hash,
  *   }
  *
  */
-void get_peers(node_t (*neighbors)[MAX_NEIGHBORS], char *info_hash);
+void get_peers(node_t **neighbors, char *info_hash);
+
+void bootstrap_neigbors(node_t **boot_neighbors, size_t n_count,
+                        node_t **node_neighbors);
+void push_neighbor(node_t **neighbors, size_t n_count, node_t);
 
 #endif
