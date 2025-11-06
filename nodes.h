@@ -7,11 +7,11 @@
 #define MAX_NEIGHBORS 20
 #define PROXIMITY_THRESHOLD 300 // any XOR metric less than or equal to 300
 
-typedef struct  {
+typedef struct {
   char *id;
   char *ip; // used to send rpc via udp
   uint16_t port;
-}node_t;
+} node_t;
 
 typedef struct {
   bool active;
@@ -21,10 +21,9 @@ typedef struct {
   node_t (*data)[MAX_NEIGHBORS];
 } neighbor_array;
 
-
 neighbor_array *new_neighbor_array();
-void resize_neighor_array(neighbor_array *d_arr);
-void push_neighor(neighbor_array *d_arr, node_t data);
+void resize_neighbor_array(neighbor_array *d_arr);
+void push_neighbor(neighbor_array *d_arr, node_t data);
 void pop_neighbor(neighbor_array *d_arr, node_t *peer_buf);
 
 /*
@@ -72,7 +71,5 @@ void compare_hash(node_t **neighbors, size_t n_count, char *hash_info,
 void get_peers(node_t **closest_neigbors, char *info_hash);
 
 void bootstrap_neigbors(node_t **boot_neighbors, size_t n_count,
-                        node_t **node_neighbors);
-void push_neighbor(node_t **neighbors, size_t n_count, node_t);
-
+                        neighbor_array *node_neighbors);
 #endif

@@ -9,7 +9,7 @@ Wrun:main.c
 
 Wgdb:main.c
 	echo "Compiling with warning args and gdb enabled"
-	gcc -g main.c peer_table.c nodes.c -o ./bin/main
+	gcc -g  peer_table.c nodes.c main.c -o ./bin/main
 
 run:./bin/main 
 	./bin/main

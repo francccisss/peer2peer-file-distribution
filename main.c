@@ -32,17 +32,18 @@ int main(int argc, char *argv[]) {
   // what is being distributed
   file_info file = {.file_hash = "13", .date_created = "November 6 2025"};
 
-  node.neighbors = malloc(sizeof(node_t));
-  bootstrap_neigbors(BOOTSTRAP_NODES, N_COUNT, node.neighbors);
+  neighbor_array *neighboring_nodes = new_neighbor_array();
+
+  bootstrap_neigbors(BOOTSTRAP_NODES, N_COUNT, neighboring_nodes);
 
   for (int i = 0; i < N_COUNT; i++) {
-    printf("id =%s\n", node.neighbors[0][i].id);
+    printf("id =%s\n", (*neighboring_nodes->data)[i].id);
   }
+  return 0;
 
   // for now for every file, a new process is created instead
   // of reusing the same process
-  node_t **closest_neighbors = malloc(sizeof(node_t));
-  compare_hash(node.neighbors,N_COUNT, file.file_hash, closest_neighbors);
+  // compare_hash(node.neighbors, N_COUNT, file.file_hash, closest_neighbors);
 
   struct sockaddr_in server;
   const int s_fd = socket(AF_INET, SOCK_DGRAM, 0);
