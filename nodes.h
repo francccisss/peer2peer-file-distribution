@@ -5,6 +5,8 @@
 #include <stddef.h>
 #include <stdint.h>
 #define MAX_NEIGHBORS 20
+#define PROXIMITY_THRESHOLD 300 // any XOR metric less than or equal to 300
+
 
 typedef struct node_t node_t;
 
@@ -14,6 +16,16 @@ struct node_t {
   uint16_t port;
   node_t **neighbors; // bootstrapped
 };
+
+
+typedef struct {
+  bool active;
+  uint32_t key;
+  size_t cap;
+  size_t len; // always access last element at len-1 because of 0 indexing
+  node_t (*neighbors)[INITIAL_CAP];
+} n_bucket_t;
+
 /*
  * returns back an array of neighbors within close proximity to the file
  * object's info_hash this
@@ -24,7 +36,8 @@ struct node_t {
  * - no neighbors
  */
 
-void compare_hash(node_t **neighbors, char *info_hash, char *node_id);
+void compare_hash(node_t **neighbors, size_t n_count, char *hash_info,
+                  node_t **closest_neigbors);
 
 /*
  * responsible for connecting to the neigbors that are within close proximity
@@ -55,7 +68,7 @@ void compare_hash(node_t **neighbors, char *info_hash, char *node_id);
  *   }
  *
  */
-void get_peers(node_t **neighbors, char *info_hash);
+void get_peers(node_t **closest_neigbors, char *info_hash);
 
 void bootstrap_neigbors(node_t **boot_neighbors, size_t n_count,
                         node_t **node_neighbors);
