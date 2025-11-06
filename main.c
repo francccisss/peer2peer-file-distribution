@@ -15,13 +15,11 @@ typedef struct {
 int main(int argc, char *argv[]) {
 
   const int N_COUNT = 3;
-  node_t **BOOTSTRAP_NODES = malloc(sizeof(node_t));
+  node_array *BOOTSTRAP_NODES = new_node_array();
 
-  BOOTSTRAP_NODES[0] = malloc(sizeof(node_t) * N_COUNT);
-
-  BOOTSTRAP_NODES[0][0] = (node_t){.id = "10", .ip = "", .port = 5432};
-  BOOTSTRAP_NODES[0][1] = (node_t){.id = "3", .ip = "", .port = 5000};
-  BOOTSTRAP_NODES[0][2] = (node_t){.id = "5", .ip = "", .port = 6969};
+  push_node(BOOTSTRAP_NODES, (node_t){.id = "10", .ip = "", .port = 5432});
+  push_node(BOOTSTRAP_NODES, (node_t){.id = "3", .ip = "", .port = 5000});
+  push_node(BOOTSTRAP_NODES, (node_t){.id = "5", .ip = "", .port = 6969});
 
   node_t node = {
       .id = "1",
@@ -32,18 +30,19 @@ int main(int argc, char *argv[]) {
   // what is being distributed
   file_info file = {.file_hash = "13", .date_created = "November 6 2025"};
 
-  neighbor_array *neighboring_nodes = new_neighbor_array();
+  node_array *neighboring_nodes = new_node_array();
 
+  // for now for every file, a new process is created instead
+  // of reusing the same process
+  // compare_hash(node.neighbors, N_COUNT, file.file_hash, closest_neighbors);
   bootstrap_neigbors(BOOTSTRAP_NODES, N_COUNT, neighboring_nodes);
 
   for (int i = 0; i < N_COUNT; i++) {
     printf("id =%s\n", (*neighboring_nodes->data)[i].id);
   }
-  return 0;
 
-  // for now for every file, a new process is created instead
-  // of reusing the same process
-  // compare_hash(node.neighbors, N_COUNT, file.file_hash, closest_neighbors);
+  compare_hash(neighboring_nodes, neighboring_nodes->len, file.file_hash,
+               BOOTSTRAP_NODES);
 
   struct sockaddr_in server;
   const int s_fd = socket(AF_INET, SOCK_DGRAM, 0);

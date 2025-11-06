@@ -19,12 +19,12 @@ typedef struct {
   size_t cap;
   size_t len; // always access last element at len-1 because of 0 indexing
   node_t (*data)[MAX_NEIGHBORS];
-} neighbor_array;
+} node_array;
 
-neighbor_array *new_neighbor_array();
-void resize_neighbor_array(neighbor_array *d_arr);
-void push_neighbor(neighbor_array *d_arr, node_t data);
-void pop_neighbor(neighbor_array *d_arr, node_t *peer_buf);
+node_array *new_node_array();
+void resize_node_array(node_array *d_arr);
+void push_node(node_array *d_arr, node_t data);
+void pop_node(node_array *d_arr, node_t *peer_buf);
 
 /*
  * returns back an array of neighbors within close proximity to the file
@@ -36,8 +36,8 @@ void pop_neighbor(neighbor_array *d_arr, node_t *peer_buf);
  * - no neighbors
  */
 
-void compare_hash(node_t **neighbors, size_t n_count, char *hash_info,
-                  node_t **closest_neigbors);
+void compare_hash(node_array *neighbors, size_t n_count, char *hash_info,
+                  node_array *closest_neigbors);
 
 /*
  * responsible for connecting to the neigbors that are within close proximity
@@ -70,6 +70,6 @@ void compare_hash(node_t **neighbors, size_t n_count, char *hash_info,
  */
 void get_peers(node_t **closest_neigbors, char *info_hash);
 
-void bootstrap_neigbors(node_t **boot_neighbors, size_t n_count,
-                        neighbor_array *node_neighbors);
+void bootstrap_neigbors(node_array *boot_neighbors, size_t n_count,
+                        node_array *node_neighbors);
 #endif
