@@ -7,24 +7,25 @@
 #define MAX_NEIGHBORS 20
 #define PROXIMITY_THRESHOLD 300 // any XOR metric less than or equal to 300
 
-
-typedef struct node_t node_t;
-
-struct node_t {
+typedef struct  {
   char *id;
   char *ip; // used to send rpc via udp
   uint16_t port;
-  node_t **neighbors; // bootstrapped
-};
-
+}node_t;
 
 typedef struct {
   bool active;
   uint32_t key;
   size_t cap;
   size_t len; // always access last element at len-1 because of 0 indexing
-  node_t (*neighbors)[INITIAL_CAP];
-} n_bucket_t;
+  node_t (*data)[MAX_NEIGHBORS];
+} neighbor_array;
+
+
+neighbor_array *new_neighbor_array();
+void resize_neighor_array(neighbor_array *d_arr);
+void push_neighor(neighbor_array *d_arr, node_t data);
+void pop_neighbor(neighbor_array *d_arr, node_t *peer_buf);
 
 /*
  * returns back an array of neighbors within close proximity to the file
