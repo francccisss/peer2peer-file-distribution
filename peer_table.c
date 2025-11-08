@@ -46,6 +46,7 @@ void set(bucket_t *(*table)[MAX_SIZE_ARRAY], const char *key,
     }
     size_t index = hash_key + 1;
     while (index < MAX_SIZE_ARRAY) {
+      // find one that is not occupied
       if ((*table)[index]->len == 0) {
         (*table)[index]->key = index;
         push((*table)[index], data);

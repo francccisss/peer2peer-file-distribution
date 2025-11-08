@@ -1,22 +1,57 @@
 #include "nodes.h"
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
-void bootstrap_neigbors(node_array *boot_neighbors, size_t n_count,
-                        node_array *node_neighbors) {
+void bootstrap_neigbors(node_array *src, size_t n_count, node_array *dst) {
   for (int i = 0; i < n_count; i++) {
     printf("%d\n", i);
-    push_node(node_neighbors, (*boot_neighbors->data)[i]);
+    push_node(dst, (*src->data)[i]);
   }
 };
 
-void compare_hash(node_array *neighbors, size_t n_count, char *hash_info,
-                  node_array *closest_neigbors) {
+// xor binary representation of both hash and node id
+// return an integer that represents the logical distance
+// between the node and the file
+//
+// using uuid for now cause why not :D
+
+void XORdistance(char *hash_info, node_t *node) {
+
+  for (int i = 0; i < strlen(hash_info); i++) {
+    node->distance += hash_info[i] ^ node->id[i];
+  };
+
+  printf("[TEST]: XORD distance =%d\n", node->distance);
+}
+
+void compare_hash(node_array *neighbors, size_t n_count, char *hash_info) {
+  // sorts neighbors by closest
+
   for (int i = 0; i < n_count; i++) {
-    printf("%s\n", (*neighbors->data)[i].id);
+    XORdistance(hash_info, &(*neighbors->data)[i]);
+  }
+
+  int i = 0;
+  while (i < n_count) {
+    int j = i;
+    while (j > 0 && (*neighbors->data)[j - 1].distance >
+                        (*neighbors->data)[j].distance) {
+      node_t *current_node = &(*neighbors->data)[j];
+      node_t tmp = *current_node;
+      *current_node = (*neighbors->data)[j - 1];
+      (*neighbors->data)[j - 1] = tmp;
+      j--;
+    };
+    i++;
+  }
+
+  for (int i = 0; i < n_count; i++) {
+    printf("[TEST] distance from hash sorted=%d\n",
+           (*neighbors->data)[i].distance);
   }
 };
 

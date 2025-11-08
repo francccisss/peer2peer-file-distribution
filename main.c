@@ -14,17 +14,22 @@ typedef struct {
 
 int main(int argc, char *argv[]) {
 
-  const int N_COUNT = 3;
   node_array *BOOTSTRAP_NODES = new_node_array();
 
-  push_node(BOOTSTRAP_NODES, (node_t){.id = "10", .ip = "", .port = 5432});
-  push_node(BOOTSTRAP_NODES, (node_t){.id = "3", .ip = "", .port = 5000});
-  push_node(BOOTSTRAP_NODES, (node_t){.id = "5", .ip = "", .port = 6969});
+  push_node(BOOTSTRAP_NODES, (node_t){.id = "55", .ip = "", .port = 5432});
+  push_node(BOOTSTRAP_NODES, (node_t){.id = "10", .ip = "", .port = 4292});
+  push_node(BOOTSTRAP_NODES, (node_t){.id = "30", .ip = "", .port = 3000});
+  push_node(BOOTSTRAP_NODES, (node_t){.id = "29", .ip = "", .port = 7010});
+  push_node(BOOTSTRAP_NODES, (node_t){.id = "24", .ip = "", .port = 7002});
+  push_node(BOOTSTRAP_NODES, (node_t){.id = "40", .ip = "", .port = 5060});
+  push_node(BOOTSTRAP_NODES, (node_t){.id = "49", .ip = "", .port = 5030});
+  push_node(BOOTSTRAP_NODES, (node_t){.id = "19", .ip = "", .port = 6939});
+  push_node(BOOTSTRAP_NODES, (node_t){.id = "11", .ip = "", .port = 6969});
 
   node_t node = {
-      .id = "1",
+      .id = "12",
       .ip = "localhost",
-      .port = 6969,
+      .port = 6942,
   };
 
   // what is being distributed
@@ -35,14 +40,14 @@ int main(int argc, char *argv[]) {
   // for now for every file, a new process is created instead
   // of reusing the same process
   // compare_hash(node.neighbors, N_COUNT, file.file_hash, closest_neighbors);
-  bootstrap_neigbors(BOOTSTRAP_NODES, N_COUNT, neighboring_nodes);
+  bootstrap_neigbors(BOOTSTRAP_NODES, BOOTSTRAP_NODES->len, neighboring_nodes);
 
-  for (int i = 0; i < N_COUNT; i++) {
+  for (int i = 0; i < BOOTSTRAP_NODES->len; i++) {
     printf("id =%s\n", (*neighboring_nodes->data)[i].id);
   }
 
-  compare_hash(neighboring_nodes, neighboring_nodes->len, file.file_hash,
-               BOOTSTRAP_NODES);
+  compare_hash(neighboring_nodes, neighboring_nodes->len, file.file_hash);
+  return 0;
 
   struct sockaddr_in server;
   const int s_fd = socket(AF_INET, SOCK_DGRAM, 0);

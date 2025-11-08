@@ -13,6 +13,10 @@
  *  Functions and structs defined in should only be used by the DHT Nodes
  */
 
+enum peer_state{
+	
+}
+
 
 typedef struct {
   char ip[15];

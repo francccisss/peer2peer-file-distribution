@@ -11,6 +11,7 @@ typedef struct {
   char *id;
   char *ip; // used to send rpc via udp
   uint16_t port;
+  uint32_t distance;
 } node_t;
 
 typedef struct {
@@ -20,7 +21,6 @@ typedef struct {
   size_t len; // always access last element at len-1 because of 0 indexing
   node_t (*data)[MAX_NEIGHBORS];
 } node_array;
-
 node_array *new_node_array();
 void resize_node_array(node_array *d_arr);
 void push_node(node_array *d_arr, node_t data);
@@ -28,7 +28,10 @@ void pop_node(node_array *d_arr, node_t *peer_buf);
 
 /*
  * returns back an array of neighbors within close proximity to the file
- * object's info_hash this
+ * object's info_hash in a sorted order using the distance as the entry
+ * for the node
+ *
+ * eg:[{node.id Min}, ...,{node.id Max}]
  *
  * this function should be called recursively until,
  * - exhausted all neighbors for current node
@@ -36,8 +39,9 @@ void pop_node(node_array *d_arr, node_t *peer_buf);
  * - no neighbors
  */
 
-void compare_hash(node_array *neighbors, size_t n_count, char *hash_info,
-                  node_array *closest_neigbors);
+void compare_hash(node_array *neighbors, size_t n_count, char *hash_info);
+
+void XORdistance(char *hash_info, node_t *node);
 
 /*
  * responsible for connecting to the neigbors that are within close proximity
@@ -70,6 +74,5 @@ void compare_hash(node_array *neighbors, size_t n_count, char *hash_info,
  */
 void get_peers(node_t **closest_neigbors, char *info_hash);
 
-void bootstrap_neigbors(node_array *boot_neighbors, size_t n_count,
-                        node_array *node_neighbors);
+void bootstrap_neigbors(node_array *src, size_t n_count, node_array *dst);
 #endif
