@@ -1,5 +1,6 @@
 #include "nodes.h"
 #include <arpa/inet.h>
+#include <stdint.h>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -70,8 +71,13 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
-  char client_buf[1024];
+ uint8_t client_buf[1024];
   printf("[INFO]: Listening from port:6969\n");
+
+  // main loop to listen for incoming datagrams from nodes and peers
+  // to distinguish different operations from incoming datagrams,
+  // we need to implement a basic RPC protocol mechanism
+  // such that every node and peer are able to understand each other
 
   while (1) {
     uint32_t bytes_read = recvfrom(s_fd, client_buf, 1024, 0, NULL, NULL);

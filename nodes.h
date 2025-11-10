@@ -1,6 +1,7 @@
 #ifndef NODES_H
 #define NODES_H
 
+#include "peer_table.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -20,11 +21,10 @@ typedef struct {
   size_t cap;
   size_t len; // always access last element at len-1 because of 0 indexing
   node_t (*data)[MAX_NEIGHBORS];
+  peer_bucket_t *(*unint_table)[MAX_SIZE_ARRAY];
 } node_array;
-node_array *new_node_array();
-void resize_node_array(node_array *d_arr);
-void push_node(node_array *d_arr, node_t data);
-void pop_node(node_array *d_arr, node_t *peer_buf);
+
+void bootstrap_neigbors(node_array *src, size_t n_count, node_array *dst);
 
 /*
  * returns back an array of neighbors within close proximity to the file
@@ -61,18 +61,28 @@ void XORdistance(char *hash_info, node_t *node);
  * table if the info_hash exists
  *
  * eg:
- *  bucket_t *bucket_buf;
- *  get(table, info_hash,&bucket_buf);
- *  if (bucket_buf != NULL ) {
- *     return_peers(bucket_buf)
+ *  peer_bucket_t *peer_bucket_buf;
+ *  get(table, info_hash,&peer_bucket_buf);
+ *  if (peer_bucket_buf != NULL ) {
+ *     return_peers(peer_bucket_buf)
  *  }
  *  else{
  *     compare_hash(&neighbors_ptr, info_hash);
  *     get_peers(&neighbors_ptr, info_hash);
  *   }
  *
+ * on success, store the peers within the node's peer_table, using the
+ * associated hash_info as the key to the bucket of peers
  */
-void get_peers(node_t **closest_neigbors, char *info_hash);
 
-void bootstrap_neigbors(node_array *src, size_t n_count, node_array *dst);
+void get_peers(node_array *sorted_neigbors, char *info_hash);
+// node joins as a peer which sets its peer_status to passive by default
+// which then propagates a join procedure call to each peers in the peer bucket
+void join();
+
+node_array *new_node_array();
+void resize_node_array(node_array *d_arr);
+void push_node(node_array *d_arr, node_t data);
+void pop_node(node_array *d_arr, node_t *peer_buf);
+
 #endif

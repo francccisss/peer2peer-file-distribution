@@ -6,6 +6,12 @@
 #include <string.h>
 #include <unistd.h>
 
+
+
+void get_peers(node_array *sorted_neighbors, char *hash_info ){
+
+};
+
 void bootstrap_neigbors(node_array *src, size_t n_count, node_array *dst) {
   for (int i = 0; i < n_count; i++) {
     printf("%d\n", i);
