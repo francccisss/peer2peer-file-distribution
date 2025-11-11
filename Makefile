@@ -13,3 +13,11 @@ Wgdb:main.c
 
 run:./bin/main 
 	./bin/main
+
+test_rpc: ./test/rpc_test.c
+	echo "Running RPC"
+	gcc -Wall ./test/rpc_test.c peers.c remote_procedure.c peer_table.c nodes.c -o ./test/test
+	echo "Compiling with warning args"
+	./test/test
+
+

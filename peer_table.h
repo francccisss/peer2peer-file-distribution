@@ -7,13 +7,10 @@
 #include <stdlib.h>
 #define HASH_OFFSET 2166136261u
 #define PRIME 16777619u
-#define MAX_SIZE_ARRAY 10
+#define MAX_PEERS 10
 #define INITIAL_CAP 8
 
-/*
- *  Functions and structs defined in should only be used by the DHT Nodes
- */
-
+// a peer bucket that contains an array of peers
 typedef struct {
   bool active;
   uint32_t key;
@@ -22,9 +19,9 @@ typedef struct {
   peer_t (*data)[INITIAL_CAP];
 } peer_bucket_t;
 
-void init_table(peer_bucket_t *(*unint_table)[MAX_SIZE_ARRAY]);
-void set(peer_bucket_t *(*table)[MAX_SIZE_ARRAY], const char *key, peer_t data);
-void get(peer_bucket_t *(*table)[MAX_SIZE_ARRAY], const char *key,
+void init_table(peer_bucket_t *(*unint_table)[MAX_PEERS]);
+void set(peer_bucket_t *(*table)[MAX_PEERS], const char *key, peer_t data);
+void get(peer_bucket_t *(*table)[MAX_PEERS], const char *key,
          peer_bucket_t **peer_bucket_buf);
 uint32_t hash(const char *input);
 

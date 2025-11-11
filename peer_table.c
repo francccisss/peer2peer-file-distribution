@@ -10,9 +10,9 @@
  *  Functions and structs defined in here should only be used by the peer_table
  */
 
-void init_table(peer_bucket_t *(*unint_table)[MAX_SIZE_ARRAY]) {
+void init_table(peer_bucket_t *(*unint_table)[MAX_PEERS]) {
   // Initializing node's peer table
-  for (int i = 0; i < MAX_SIZE_ARRAY; ++i) {
+  for (int i = 0; i < MAX_PEERS; ++i) {
     (*unint_table)[i] = new_array();
   };
 };
@@ -26,12 +26,12 @@ uint32_t hash(const char *input) {
   }
 
   printf("hash value=%d\n", hash);
-  printf("hash mod value=%d\n", hash % MAX_SIZE_ARRAY);
+  printf("hash mod value=%d\n", hash % MAX_PEERS);
 
-  return hash % MAX_SIZE_ARRAY;
+  return hash % MAX_PEERS;
 }
 
-void set(peer_bucket_t *(*table)[MAX_SIZE_ARRAY], const char *key,
+void set(peer_bucket_t *(*table)[MAX_PEERS], const char *key,
          const peer_t data) {
   const uint32_t hash_key = hash(key);
   // current peer_bucket is occupied given by hash
@@ -45,7 +45,7 @@ void set(peer_bucket_t *(*table)[MAX_SIZE_ARRAY], const char *key,
       return;
     }
     size_t index = hash_key + 1;
-    while (index < MAX_SIZE_ARRAY) {
+    while (index < MAX_PEERS) {
       // find one that is not occupied
       if ((*table)[index]->len == 0) {
         (*table)[index]->key = index;
@@ -69,7 +69,7 @@ void set(peer_bucket_t *(*table)[MAX_SIZE_ARRAY], const char *key,
 /// This is bad, because the insertion in this hashmap, where 2 keys might
 /// collide which results into a linear probing, so insertion time == retrieval
 /// time as insertion increases linearly
-void get(peer_bucket_t *(*table)[MAX_SIZE_ARRAY], const char *key,
+void get(peer_bucket_t *(*table)[MAX_PEERS], const char *key,
          peer_bucket_t **peer_bucket_buf) {
   const uint32_t hash_key = hash(key);
   uint32_t current_key = (*table)[hash_key]->key;
@@ -79,9 +79,9 @@ void get(peer_bucket_t *(*table)[MAX_SIZE_ARRAY], const char *key,
       return;
     }
     current_key++;
-  } while (current_key < MAX_SIZE_ARRAY);
+  } while (current_key < MAX_PEERS);
 
-  // (current_key...MAX_SIZE_ARRAY-1) yikes
+  // (current_key...MAX_PEERS-1) yikes
   printf("[INFO]: peer_bucket does not exist");
 }
 

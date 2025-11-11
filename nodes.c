@@ -17,7 +17,8 @@ void get_peers(int s_fd, node_array *sorted_neighbors, char *hash_info) {
     int rs = call_rpc(GET_PEERS, (void *)0, 0, d_host);
 
     if (rs < 0) {
-      printf("[WARN]: unable to initiate GET_PEERS call with distance=%d\n",n.distance);
+      printf("[WARN]: unable to initiate GET_PEERS call with distance=%d\n",
+             n.distance);
       continue;
     };
   }

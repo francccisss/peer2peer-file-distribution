@@ -1,9 +1,11 @@
-
 #include "remote_procedure.h"
+#include "nodes.h"
+#include "peers.h"
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
 
@@ -40,9 +42,26 @@ int call_rpc(CALL_TYPE call_type, void *buffer, size_t buf_sz,
   return 0;
 }
 
-int recv_rpc(rpc_msg *buffer){
+int recv_rpc(int s_fd, rpc_msg *call, node_array *sorted_neighbors,
+             node_t *node) {
+  switch (call->body.rbody.type) {
+  case GET_PEERS: {
+    return 0;
+    char *hash = (char *)call->body.cbody.payload;
+    peer_bucket_t *peer_buf = malloc(sizeof(peer_t));
+    if (peer_buf == NULL) {
+      perror("[ERROR] malloc");
+      exit(1);
+    };
+    get(node->peer_table, hash, &peer_buf);
+    if (peer_buf == NULL) {
+      get_peers(s_fd, sorted_neighbors, hash);
+    }
+    break;
+  }
+  default:
+    printf("no existing call type");
+  }
 
-
-	return 0;
+  return 0;
 };
-

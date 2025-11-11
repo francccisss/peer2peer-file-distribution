@@ -13,15 +13,16 @@ typedef struct {
   char *ip; // used to send rpc via udp
   uint16_t port;
   uint32_t distance;
+  peer_bucket_t *(*peer_table)[MAX_PEERS];
 } node_t;
 
+// used as neighbors of the current node
 typedef struct {
   bool active;
   uint32_t key;
   size_t cap;
   size_t len; // always access last element at len-1 because of 0 indexing
   node_t (*data)[MAX_NEIGHBORS];
-  peer_bucket_t *(*unint_table)[MAX_SIZE_ARRAY];
 } node_array;
 
 void bootstrap_neigbors(node_array *src, size_t n_count, node_array *dst);
@@ -74,7 +75,7 @@ void XORdistance(char *hash_info, node_t *node);
  * on success, store the peers within the node's peer_table, using the
  * associated hash_info as the key to the bucket of peers
  */
-void get_peers(int s_fd,node_array *sorted_neigbors, char *info_hash);
+void get_peers(int s_fd, node_array *sorted_neigbors, char *info_hash);
 
 node_array *new_node_array();
 void resize_node_array(node_array *d_arr);

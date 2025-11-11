@@ -1,6 +1,7 @@
 #ifndef REMOTE_PROCEDURE
 #define REMOTE_PROCEDURE
 
+#include "nodes.h"
 #include <netinet/in.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -105,6 +106,7 @@ int call_rpc(CALL_TYPE call_type, void *buffer, size_t buf_sz,
 
 int reply_rpc(CALL_TYPE call_type, void *buffer, size_t buf_sz,
               destination_host d_host, char *correlation_id);
-int recv_rpc(rpc_msg *buffer);
 
+int recv_rpc(int sf_d, rpc_msg *reply, node_array *sorted_neighbors,
+             node_t *node);
 #endif
