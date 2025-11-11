@@ -58,6 +58,8 @@ int main() {
   };
   memcpy(body.payload, file.file_hash, 32);
 
+  init_table(node.peer_table);
+
   recv_rpc(0, &call, neighboring_nodes, &node);
   return 0;
 }

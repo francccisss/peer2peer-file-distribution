@@ -6,10 +6,8 @@
 #define HASH_OFFSET 2166136261u
 #define PRIME 16777619u
 
-/*
- *  Functions and structs defined in here should only be used by the peer_table
- */
-
+// requires a table pointer to an array of pointers of type peer
+// eg: init(node.peer_table);  to initialize the node peer_table
 void init_table(peer_bucket_t *(*unint_table)[MAX_PEERS]) {
   // Initializing node's peer table
   for (int i = 0; i < MAX_PEERS; ++i) {

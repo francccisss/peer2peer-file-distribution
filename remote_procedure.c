@@ -46,17 +46,17 @@ int recv_rpc(int s_fd, rpc_msg *call, node_array *sorted_neighbors,
              node_t *node) {
   switch (call->body.rbody.type) {
   case GET_PEERS: {
-    return 0;
+    printf("GET PEERS BROO\n");
     char *hash = (char *)call->body.cbody.payload;
-    peer_bucket_t *peer_buf = malloc(sizeof(peer_t));
-    if (peer_buf == NULL) {
+    peer_bucket_t *peer_bucket_buf = malloc(sizeof(peer_t));
+    if (peer_bucket_buf == NULL) {
       perror("[ERROR] malloc");
       exit(1);
     };
-    get(node->peer_table, hash, &peer_buf);
-    if (peer_buf == NULL) {
-      get_peers(s_fd, sorted_neighbors, hash);
-    }
+    get(node->peer_table, hash, &peer_bucket_buf);
+    // if (peer_bucket_buf == NULL) {
+    //   get_peers(s_fd, sorted_neighbors, hash);
+    // }
     break;
   }
   default:
