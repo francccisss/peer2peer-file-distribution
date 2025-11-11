@@ -74,11 +74,7 @@ void XORdistance(char *hash_info, node_t *node);
  * on success, store the peers within the node's peer_table, using the
  * associated hash_info as the key to the bucket of peers
  */
-
-void get_peers(node_array *sorted_neigbors, char *info_hash);
-// node joins as a peer which sets its peer_status to passive by default
-// which then propagates a join procedure call to each peers in the peer bucket
-void join();
+void get_peers(int s_fd,node_array *sorted_neigbors, char *info_hash);
 
 node_array *new_node_array();
 void resize_node_array(node_array *d_arr);

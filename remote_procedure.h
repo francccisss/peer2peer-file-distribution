@@ -1,6 +1,7 @@
 #ifndef REMOTE_PROCEDURE
 #define REMOTE_PROCEDURE
 
+#include <netinet/in.h>
 #include <stddef.h>
 #include <stdint.h>
 #define MAX_BUFFER_SIZE 1024
@@ -15,7 +16,7 @@ typedef enum {
 typedef enum {
   ERR = -1,
   OK,
-} STATUS;
+} MSG_STATUS;
 /*
  * call_type is read by the receiver, to issue the appropriate routine to
  * execute based on the call type of the sender.
@@ -38,7 +39,7 @@ typedef struct {
  * eg: call is GET_PEERS, receiver processes the request, returns the result
  * local host checks the status, and the type
  *
- * if STATUS > 0
+ * if MSG_STATUS > 0
  *  check the type
  *  shape the type into the appropriate expected type
  *  since the payload is just an array of bytes
@@ -49,7 +50,7 @@ typedef struct {
 typedef struct {
   CALL_TYPE type;
   uint8_t payload[MAX_BUFFER_SIZE];
-  STATUS status;
+  MSG_STATUS status;
 } reply_body;
 
 typedef enum {
@@ -69,10 +70,10 @@ typedef enum {
  *
  * FILE MESSAGES
  * if the file exceeds some N amount, the rpc protocol will have to create
- * segments of the `body.payload`, in which the segment_count can tell the receiving host how
- * many datagrams from the correlation_id are we waiting for before we can
- * process the whole thing, and as well as using the the segment number to
- * assimilate and assemble the rpc messages
+ * segments of the `body.payload`, in which the segment_count can tell the
+ * receiving host how many datagrams from the correlation_id are we waiting for
+ * before we can process the whole thing, and as well as using the the segment
+ * number to assimilate and assemble the rpc messages
  */
 
 typedef struct {
@@ -93,6 +94,15 @@ typedef struct {
  * as per RFC definition, the send function needs to wait for a reply
  */
 
-int send(void *buffer);
+typedef struct {
+  char *ip;
+  int port;
+  int s_fd;
+} destination_host;
+
+
+int call_rpc(CALL_TYPE call_type, void *buffer, size_t buf_sz,
+             destination_host d_host);
+int recv_rpc(void *buffer);
 
 #endif

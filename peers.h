@@ -7,11 +7,9 @@
 // used for notifying other peers what the current peer
 // wants to do
 typedef enum {
-
-  PASSIVE = 0,
-  LEECH = 1,
-  SEED = 2,
-
+  PASSIVE_ST = 0,
+  LEECH_ST = 1,
+  SEED_ST = 2,
 } PEER_STATE;
 
 typedef struct {

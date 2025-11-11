@@ -1,10 +1,10 @@
 #ifndef PEER_TABLE_H
 #define PEER_TABLE_H
 
+#include "peers.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "peers.h"
 #define HASH_OFFSET 2166136261u
 #define PRIME 16777619u
 #define MAX_SIZE_ARRAY 10

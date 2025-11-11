@@ -1,15 +1,26 @@
 #include "nodes.h"
+#include "remote_procedure.h"
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/socket.h>
 #include <unistd.h>
 
+void get_peers(int s_fd, node_array *sorted_neighbors, char *hash_info) {
+  for (int i = 0; i < sorted_neighbors->len; i++) {
 
+    node_t n = (*sorted_neighbors->data)[i];
+    destination_host d_host = {.ip = n.ip, .port = n.port, .s_fd = s_fd};
 
-void get_peers(node_array *sorted_neighbors, char *hash_info ){
+    int rs = call_rpc(GET_PEERS, (void *)0, 0, d_host);
 
+    if (rs < 0) {
+      printf("[WARN]: unable to initiate GET_PEERS call with distance=%d\n",n.distance);
+      continue;
+    };
+  }
 };
 
 void bootstrap_neigbors(node_array *src, size_t n_count, node_array *dst) {
@@ -31,7 +42,7 @@ void XORdistance(char *hash_info, node_t *node) {
     node->distance += hash_info[i] ^ node->id[i];
   };
 
-  printf("[TEST]: XORD distance =%d\n", node->distance);
+  printf("[TEST]: XORD distance=%d\n", node->distance);
 }
 
 void compare_hash(node_array *neighbors, size_t n_count, char *hash_info) {

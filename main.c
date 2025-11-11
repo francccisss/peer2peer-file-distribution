@@ -1,11 +1,15 @@
 #include "nodes.h"
 #include <arpa/inet.h>
-#include <stdint.h>
 #include <netinet/in.h>
+#include <pthread.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <unistd.h>
+
+int SOCKET_FD;
 
 typedef struct {
   char *file_hash;
@@ -15,6 +19,7 @@ typedef struct {
 
 int main(int argc, char *argv[]) {
 
+  pthread_t pth_id;
   node_array *BOOTSTRAP_NODES = new_node_array();
 
   push_node(BOOTSTRAP_NODES, (node_t){.id = "55", .ip = "", .port = 5432});
@@ -25,12 +30,12 @@ int main(int argc, char *argv[]) {
   push_node(BOOTSTRAP_NODES, (node_t){.id = "40", .ip = "", .port = 5060});
   push_node(BOOTSTRAP_NODES, (node_t){.id = "49", .ip = "", .port = 5030});
   push_node(BOOTSTRAP_NODES, (node_t){.id = "19", .ip = "", .port = 6939});
-  push_node(BOOTSTRAP_NODES, (node_t){.id = "11", .ip = "", .port = 6969});
+  push_node(BOOTSTRAP_NODES, (node_t){.id = "11", .ip = "", .port = 6942});
 
   node_t node = {
       .id = "12",
       .ip = "localhost",
-      .port = 6942,
+      .port = 6969,
   };
 
   // what is being distributed
@@ -48,12 +53,11 @@ int main(int argc, char *argv[]) {
   }
 
   compare_hash(neighboring_nodes, neighboring_nodes->len, file.file_hash);
-  return 0;
 
   struct sockaddr_in server;
-  const int s_fd = socket(AF_INET, SOCK_DGRAM, 0);
+  SOCKET_FD = socket(AF_INET, SOCK_DGRAM, 0);
 
-  if (s_fd < 0) {
+  if (SOCKET_FD < 0) {
     perror("[SOCKET ERROR]:");
     exit(1);
   }
@@ -66,27 +70,21 @@ int main(int argc, char *argv[]) {
 
   inet_pton(AF_INET, node.ip, &(server.sin_addr));
 
-  if (bind(s_fd, (struct sockaddr *)&server, sizeof(server)) < 0) {
+  if (bind(SOCKET_FD, (struct sockaddr *)&server, sizeof(server)) < 0) {
     perror("[SOCKET ERROR]:");
     exit(1);
   }
 
- uint8_t client_buf[1024];
+  uint8_t client_buf[1024];
   printf("[INFO]: Listening from port:6969\n");
 
-  // main loop to listen for incoming datagrams from nodes and peers
-  // to distinguish different operations from incoming datagrams,
-  // we need to implement a basic RPC protocol mechanism
-  // such that every node and peer are able to understand each other
-
   while (1) {
-    uint32_t bytes_read = recvfrom(s_fd, client_buf, 1024, 0, NULL, NULL);
-    printf("[TEST]: bytes read =%d", bytes_read);
+    uint32_t bytes_read = recvfrom(SOCKET_FD, client_buf, 1024, 0, NULL, NULL);
+    printf("[TEST]: bytes read=%d in main thread=%d\n", bytes_read, getpid());
     if (bytes_read == -1) {
       perror("[RECV FROM ERR]");
       break;
     }
-    break;
+    printf("[TEST]: text from client =%s\n", client_buf);
   }
-  printf("[TEST]: text from client =%s", client_buf);
 };
