@@ -80,11 +80,11 @@ typedef struct {
   char correlation_id[36];
   uint16_t segment_number;
   size_t segment_count;
-  MSG_TYPE type;
-  union body {
+  MSG_TYPE msg_type;
+  union {
     call_body cbody;
     reply_body rbody;
-  };
+  } body;
 } rpc_msg;
 
 /*
@@ -100,9 +100,11 @@ typedef struct {
   int s_fd;
 } destination_host;
 
-
 int call_rpc(CALL_TYPE call_type, void *buffer, size_t buf_sz,
              destination_host d_host);
-int recv_rpc(void *buffer);
+
+int reply_rpc(CALL_TYPE call_type, void *buffer, size_t buf_sz,
+              destination_host d_host, char *correlation_id);
+int recv_rpc(rpc_msg *buffer);
 
 #endif

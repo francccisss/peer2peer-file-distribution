@@ -87,4 +87,5 @@ int main(int argc, char *argv[]) {
     }
     printf("[TEST]: text from client =%s\n", client_buf);
   }
+	close(SOCKET_FD);
 };
