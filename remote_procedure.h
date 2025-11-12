@@ -12,25 +12,25 @@ typedef enum {
   JOIN,
   LEECH,
   SEED,
-} CALL_TYPE;
+} RPC_TYPE;
 
 typedef enum {
   ERR = -1,
   OK,
 } MSG_STATUS;
 /*
- * call_type is read by the receiver, to issue the appropriate routine to
+ * rpc_type is read by the receiver, to issue the appropriate routine to
  * execute based on the call type of the sender.
  *
  * each host/node will have lookup table or a call table where it processes the
- * datagram from a host, extracts the call_type and uses that as an entry
+ * datagram from a host, extracts the rpc_type and uses that as an entry
  * to the corresponding routine pointer in that table
  *
  * payload is the data iteself that will be populated by the
  *
  */
 typedef struct {
-  CALL_TYPE type;
+  RPC_TYPE type;
   uint8_t payload[MAX_BUFFER_SIZE];
 } call_body;
 
@@ -49,7 +49,7 @@ typedef struct {
  */
 
 typedef struct {
-  CALL_TYPE type;
+  RPC_TYPE type;
   uint8_t payload[MAX_BUFFER_SIZE];
   MSG_STATUS status;
 } reply_body;
@@ -78,7 +78,7 @@ typedef enum {
  */
 
 typedef struct {
-  char correlation_id[36];
+  char *correlation_id;
   uint16_t segment_number;
   size_t segment_count;
   MSG_TYPE msg_type;
@@ -101,11 +101,15 @@ typedef struct {
   int s_fd;
 } destination_host;
 
-int call_rpc(CALL_TYPE call_type, void *buffer, size_t buf_sz,
+// calls dont need to take up that much memory to be used in arg, unless it
+// is a response/reply from the call, the arg is used to pass in additional
+// information .
+int call_rpc(RPC_TYPE rpc_type, void *arg, size_t buf_sz,
              destination_host d_host);
 
-int reply_rpc(CALL_TYPE call_type, void *buffer, size_t buf_sz,
-              destination_host d_host, char *correlation_id);
+int reply_rpc(RPC_TYPE rpc_type, void *buffer, size_t buf_sz,
+              destination_host d_host, char *correlation_id,
+              MSG_STATUS msg_status);
 
 int recv_rpc(int sf_d, rpc_msg *reply, node_array *sorted_neighbors,
              node_t *node);
