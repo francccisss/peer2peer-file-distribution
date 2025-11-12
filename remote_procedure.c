@@ -48,15 +48,27 @@ int recv_rpc(int s_fd, rpc_msg *call, node_array *sorted_neighbors,
   case GET_PEERS: {
     printf("GET PEERS BROO\n");
     char *hash = (char *)call->body.cbody.payload;
+
+    printf("[TEST] incoming hash %s\n", hash);
+                        if(strcmp(hash,"") < 0){
+      // reply with an error
+      break;
+			}
     peer_bucket_t *peer_bucket_buf = malloc(sizeof(peer_t));
     if (peer_bucket_buf == NULL) {
       perror("[ERROR] malloc");
       exit(1);
     };
     get(node->peer_table, hash, &peer_bucket_buf);
-    // if (peer_bucket_buf == NULL) {
-    //   get_peers(s_fd, sorted_neighbors, hash);
-    // }
+    if (peer_bucket_buf == NULL) {
+      printf("[TEST]: table does not exist call get peers\n");
+      // get_peers(s_fd, sorted_neighbors, hash);
+      break;
+    }
+    for (int i = 0; i < peer_bucket_buf->len; i++) {
+      printf("[TEST]: ip=%s, port=%d\n", (*peer_bucket_buf->data)[i].ip,
+             (*peer_bucket_buf->data)[i].port);
+    }
     break;
   }
   default:
