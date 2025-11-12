@@ -59,6 +59,18 @@ typedef enum {
   CALL,
 } MSG_TYPE;
 
+typedef struct {
+  char ip[INET_ADDRSTRLEN];
+  int port;
+  int s_fd;
+} sender_host;
+
+typedef struct {
+  char ip[INET_ADDRSTRLEN];
+  uint16_t port;
+  int s_fd;
+} destination_host;
+
 /*
  *
  * the correlation_id is used to distinguish the caller of the send() function,
@@ -82,24 +94,12 @@ typedef struct {
   uint16_t segment_number;
   size_t segment_count;
   MSG_TYPE msg_type;
+  sender_host origin;
   union {
     call_body cbody;
     reply_body rbody;
   } body;
 } rpc_msg;
-
-/*
- * params buffer wil lbe used to populate unknown data type
- * which will be returned to the caller and assume it's shape
- *
- * as per RFC definition, the send function needs to wait for a reply
- */
-
-typedef struct {
-  char *ip;
-  int port;
-  int s_fd;
-} destination_host;
 
 // calls dont need to take up that much memory to be used in arg, unless it
 // is a response/reply from the call, the arg is used to pass in additional

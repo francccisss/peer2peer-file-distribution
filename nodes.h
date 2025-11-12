@@ -2,6 +2,7 @@
 #define NODES_H
 
 #include "peer_table.h"
+#include <netinet/in.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -10,7 +11,7 @@
 
 typedef struct {
   char *id;
-  char *ip; // used to send rpc via udp
+  char ip[INET_ADDRSTRLEN];
   uint16_t port;
   uint32_t distance;
   peer_bucket_t *peer_table[MAX_PEERS];

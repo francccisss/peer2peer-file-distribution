@@ -1,5 +1,6 @@
 #include "nodes.h"
 #include "remote_procedure.h"
+
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -12,7 +13,8 @@ void get_peers(int s_fd, node_array *sorted_neighbors, char *hash_info) {
   for (int i = 0; i < sorted_neighbors->len; i++) {
 
     node_t n = (*sorted_neighbors->data)[i];
-    destination_host d_host = {.ip = n.ip, .port = n.port, .s_fd = s_fd};
+    destination_host d_host = { .port = n.port, .s_fd = s_fd};
+    strcpy(n.ip,d_host.ip);
 
     int rs = call_rpc(GET_PEERS, (void *)0, 0, d_host);
 
