@@ -45,14 +45,12 @@ int main() {
 
   compare_hash(neighboring_nodes, neighboring_nodes->len, file.file_hash);
 
-  call_body body = {.type = GET_PEERS};
+  call_body body = {.type = htons(GET_PEERS)};
   memcpy(body.payload, file.file_hash, 32);
-  rpc_msg call = {.segment_count = 0,
-                  .segment_number = 0,
-                  .correlation_id = "some random value",
-                  .msg_type = CALL,
+  rpc_msg call = {.correlation_id = "some random value",
+                  .msg_type = htons(CALL),
                   .body.cbody = body,
-                  .origin = {.ip = "localhost", .port = 1234}};
+                  .origin = {.ip = "localhost", .port = htons(1234)}};
 
   printf("sorted neighbor len %ld", neighboring_nodes->len);
   init_table(&node.peer_table);

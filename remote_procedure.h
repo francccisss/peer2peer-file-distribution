@@ -61,15 +61,8 @@ typedef enum {
 
 typedef struct {
   char ip[INET_ADDRSTRLEN];
-  int port;
-  int s_fd;
-} sender_host;
-
-typedef struct {
-  char ip[INET_ADDRSTRLEN];
   uint16_t port;
-  int s_fd;
-} destination_host;
+} origin;
 
 /*
  *
@@ -94,7 +87,7 @@ typedef struct {
   uint16_t segment_number;
   size_t segment_count;
   MSG_TYPE msg_type;
-  sender_host origin;
+  origin origin;
   union {
     call_body cbody;
     reply_body rbody;
@@ -104,12 +97,11 @@ typedef struct {
 // calls dont need to take up that much memory to be used in arg, unless it
 // is a response/reply from the call, the arg is used to pass in additional
 // information .
-int call_rpc(RPC_TYPE rpc_type, void *arg, size_t buf_sz,
-             destination_host d_host);
+int call_rpc(int s_fd, RPC_TYPE rpc_type, void *arg, size_t buf_sz,
+             origin d_host);
 
-int reply_rpc(RPC_TYPE rpc_type, void *buffer, size_t buf_sz,
-              destination_host d_host, char *correlation_id,
-              MSG_STATUS msg_status);
+int reply_rpc(int s_fd, RPC_TYPE rpc_type, void *buffer, size_t buf_sz,
+              origin d_host, char *correlation_id, MSG_STATUS msg_status);
 
 int recv_rpc(int sf_d, rpc_msg *reply, node_array *sorted_neighbors,
              node_t *node);

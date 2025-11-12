@@ -13,10 +13,12 @@ void get_peers(int s_fd, node_array *sorted_neighbors, char *hash_info) {
   for (int i = 0; i < sorted_neighbors->len; i++) {
 
     node_t n = (*sorted_neighbors->data)[i];
-    destination_host d_host = { .port = n.port, .s_fd = s_fd};
-    strcpy(n.ip,d_host.ip);
+    origin d_host = {
+        .port = n.port,
+    };
+    strcpy(n.ip, d_host.ip);
 
-    int rs = call_rpc(GET_PEERS, (void *)0, 0, d_host);
+    int rs = call_rpc(s_fd, GET_PEERS, (void *)0, 0, d_host);
 
     if (rs < 0) {
       printf("[WARN]: unable to initiate GET_PEERS call with distance=%d\n",
