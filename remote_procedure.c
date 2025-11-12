@@ -98,14 +98,14 @@ int recv_rpc(int s_fd, rpc_msg *call, node_array *sorted_neighbors,
       perror("[ERROR] malloc");
       exit(1);
     };
-    get(node->peer_table, hash, &peer_bucket_buf);
+    get(&node->peer_table, hash, &peer_bucket_buf);
     if (peer_bucket_buf == NULL) {
       printf("[TEST]: table does not exist call get peers\n");
       // get_peers(s_fd, sorted_neighbors, hash);
       break;
     }
-			printf("sorted neighbor len %ld", sorted_neighbors->len);
-			return 0;
+    printf("sorted neighbor len %ld", sorted_neighbors->len);
+    return 0;
     for (int i = 0; i < sorted_neighbors->len; i++) {
       printf("[TEST] ip=%s, port=%d", (*sorted_neighbors->data)[i].ip,
              (*sorted_neighbors->data)[i].port);

@@ -28,7 +28,6 @@ int main() {
       .ip = "localhost",
       .port = 6969,
   };
-  node.peer_table = malloc(sizeof(peer_bucket_t));
 
   // what is being distributed
   file_info file = {.file_hash = "13", .date_created = "November 6 2025"};
@@ -46,8 +45,7 @@ int main() {
 
   compare_hash(neighboring_nodes, neighboring_nodes->len, file.file_hash);
 
-  call_body body = {.type = GET_PEERS
-  };
+  call_body body = {.type = GET_PEERS};
   memcpy(body.payload, file.file_hash, 32);
   rpc_msg call = {
       .segment_count = 0,
@@ -56,22 +54,23 @@ int main() {
       .msg_type = CALL,
       .body.cbody = body,
   };
-  // memcpy(call.body.cbody.payload, file.file_hash, 32);
-  init_table(node.peer_table);
 
-  set(node.peer_table, file.file_hash,
+  printf("sorted neighbor len %ld", neighboring_nodes->len);
+  init_table(&node.peer_table);
+
+  set(&node.peer_table, file.file_hash,
       (peer_t){.ip = "some ip address",
                .port = 42069,
                .job_id = "job?",
                .state = PASSIVE_ST});
 
-  set(node.peer_table, file.file_hash,
+  set(&node.peer_table, file.file_hash,
       (peer_t){.ip = "that ip address",
                .port = 12345,
                .job_id = "job!!",
                .state = LEECH_ST});
 
-  set(node.peer_table, file.file_hash,
+  set(&node.peer_table, file.file_hash,
       (peer_t){.ip = "what ip address",
                .port = 52598,
                .job_id = "job?!?1",

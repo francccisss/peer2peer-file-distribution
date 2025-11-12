@@ -13,7 +13,7 @@ typedef struct {
   char *ip; // used to send rpc via udp
   uint16_t port;
   uint32_t distance;
-  peer_bucket_t *(*peer_table)[MAX_PEERS];
+  peer_bucket_t *peer_table[MAX_PEERS];
 } node_t;
 
 // used as neighbors of the current node
