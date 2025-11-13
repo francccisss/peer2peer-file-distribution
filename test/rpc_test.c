@@ -93,7 +93,8 @@ int main() {
       perror("[ERROR] Socket bind");
       exit(-1);
     }
-    recv_rpc(sfd, &msg_buffer, neighboring_nodes, &node);
+
+    recv_rpc(sfd,&node, &msg_buffer, neighboring_nodes);
   }
   return 0;
 }

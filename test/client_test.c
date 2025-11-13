@@ -47,7 +47,7 @@ int main() {
   push_node(neighboring_nodes,
             (node_t){.distance = 1, .ip = "localhost", .port = 3000});
 
-  get_peers(sfd, neighboring_nodes, file.file_hash);
+  get_peers(sfd, &node, neighboring_nodes, file.file_hash);
 
   rpc_msg msg_buffer;
   while (1) {
@@ -56,7 +56,7 @@ int main() {
       perror("[ERROR] Socket bind");
       exit(-1);
     }
-    recv_rpc(sfd, &msg_buffer, neighboring_nodes, &node);
+    recv_rpc(sfd, &node, &msg_buffer, neighboring_nodes);
   }
 
   return 0;

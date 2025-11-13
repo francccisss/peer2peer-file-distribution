@@ -10,7 +10,7 @@
 #include <sys/socket.h>
 
 int call_rpc(int s_fd, METHOD method, void *payload, size_t payload_sz,
-             origin reply_to) {
+             origin send_to, node_t *node) {
 
   call_body c_body = {
       .method = htons(method),
@@ -21,14 +21,16 @@ int call_rpc(int s_fd, METHOD method, void *payload, size_t payload_sz,
       .correlation_id = "random value",
       .msg_type = htons(CALL),
       .body.cbody = c_body,
+      .origin.port = htons(node->port),
   };
+  strcpy(msg.origin.ip, node->ip);
 
   struct sockaddr_in dest;
 
   memset(&dest, 0, sizeof(dest));
   dest.sin_family = AF_INET;
-  dest.sin_port = htons(reply_to.port);
-  inet_pton(AF_INET, reply_to.ip, &(dest.sin_addr));
+  dest.sin_port = htons(send_to.port);
+  inet_pton(AF_INET, send_to.ip, &(dest.sin_addr));
 
   long n_sent = sendto(s_fd, &msg, sizeof(msg), 0, (struct sockaddr *)&dest,
                        sizeof(dest));
@@ -70,7 +72,7 @@ int reply_rpc(int s_fd, METHOD method, void *payload, size_t payload_sz,
   rpc_msg msg = {
       .segment_count = htonl(0),
       .segment_number = htonl(0),
-      .msg_type = htons(CALL),
+      .msg_type = htons(REPLY),
       .body.rbody = r_body,
   };
   strcpy(msg.correlation_id, correlation_id);
@@ -84,12 +86,15 @@ int reply_rpc(int s_fd, METHOD method, void *payload, size_t payload_sz,
   return 0;
 };
 
-int recv_rpc(int s_fd, rpc_msg *rpc_msg, node_array *sorted_neighbors,
-             node_t *node) {
+int recv_rpc(int s_fd, node_t *node, rpc_msg *rpc_msg,
+             node_array *sorted_neighbors) {
+
+  // grab the port and address of the sender defined by call_rpc
   origin reply_to = {.port = ntohs(rpc_msg->origin.port)};
+
   strcpy(reply_to.ip, rpc_msg->origin.ip);
 
-  printf("[TEST]: sender destination ip=%s, port=%d\n", reply_to.ip,
+  printf("[TEST NETWORK]: sender destination ip=%s, port=%d\n", reply_to.ip,
          reply_to.port);
 
   rpc_msg->body.cbody.method = ntohs(rpc_msg->body.cbody.method);
@@ -99,14 +104,15 @@ int recv_rpc(int s_fd, rpc_msg *rpc_msg, node_array *sorted_neighbors,
 
   if (rpc_msg->msg_type == CALL) {
 
+    printf("[RPC TYPE]: CALL\n");
     switch (rpc_msg->body.cbody.method) {
     case GET_PEERS: {
-      printf("GET PEERS BROO\n");
+      printf("[METHOD CALL]: GET_PEERS \n");
       char *hash = (char *)rpc_msg->body.cbody.payload;
       printf("[TEST] incoming hash %s\n", hash);
 
       if (strcmp(hash, "") < 0) {
-        printf("[ERROR] hash is empty");
+        printf("[ERROR]: hash is empty");
         reply_rpc(s_fd, rpc_msg->body.cbody.method, NULL, 0, reply_to,
                   rpc_msg->correlation_id, ERR);
         break;
@@ -114,14 +120,14 @@ int recv_rpc(int s_fd, rpc_msg *rpc_msg, node_array *sorted_neighbors,
 
       peer_bucket_t *peer_bucket_buf = malloc(sizeof(peer_t));
       if (peer_bucket_buf == NULL) {
-        perror("[ERROR] malloc");
+        perror("[ERROR]: malloc");
         exit(1);
       };
 
       get(&node->peer_table, hash, &peer_bucket_buf);
       if (peer_bucket_buf == NULL) {
         printf("[TEST]: table does not exist call get peers\n");
-        // get_peers(s_fd, sorted_neighbors, hash);
+        get_peers(s_fd, node, sorted_neighbors, hash);
         break;
       }
 
@@ -144,6 +150,7 @@ int recv_rpc(int s_fd, rpc_msg *rpc_msg, node_array *sorted_neighbors,
     }
   } else {
 
+    printf("[RPC TYPE]: REPLY\n");
     switch (rpc_msg->body.rbody.method) {
     case GET_PEERS:
       // make this into a reusable function that takes in an input

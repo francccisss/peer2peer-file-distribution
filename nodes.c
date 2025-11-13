@@ -9,7 +9,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-void get_peers(int s_fd, node_array *sorted_neighbors, char *hash_info) {
+void get_peers(int s_fd,node_t *node , node_array *sorted_neighbors, char *hash_info) {
   for (int i = 0; i < sorted_neighbors->len; i++) {
 
     node_t n = (*sorted_neighbors->data)[i];
@@ -18,7 +18,7 @@ void get_peers(int s_fd, node_array *sorted_neighbors, char *hash_info) {
     };
     strcpy(d_host.ip, n.ip);
 
-    int rs = call_rpc(s_fd, GET_PEERS, "wtf", 0, d_host);
+    int rs = call_rpc(s_fd, GET_PEERS, "wtf", 0, d_host, node);
 
     if (rs < 0) {
       printf("[WARN]: unable to initiate GET_PEERS call with distance=%d\n",

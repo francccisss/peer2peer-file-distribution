@@ -95,16 +95,23 @@ typedef struct {
   char correlation_id[CORRELATAION_ID_SIZE];
 } rpc_msg;
 
-// calls dont need to take up that much memory to be used in arg, unless it
-// is a response/reply from the call, the arg is used to pass in additional
-// information .
+/*
+ * Calls dont need to take up that much memory to be used in arg, unless it
+ * is a response/reply from the call, the arg is used to pass in additional
+ * information.
+ *
+ * The rpc_msg needs to tell the receiver where to send the
+ * payload back to, the node which is the current node process, stores the host
+ * ip and port.
+ *
+ */
 int call_rpc(int s_fd, METHOD method, void *arg, size_t payload_sz,
-             origin d_host);
+             origin d_host, node_t *node);
 
 int reply_rpc(int s_fd, METHOD method, void *payload, size_t payload_sz,
               origin d_host, char correlation_id[CORRELATAION_ID_SIZE],
               MSG_STATUS msg_status);
 
-int recv_rpc(int sf_d, rpc_msg *reply, node_array *sorted_neighbors,
-             node_t *node);
+int recv_rpc(int sf_d, node_t *node, rpc_msg *reply,
+             node_array *sorted_neighbors );
 #endif
