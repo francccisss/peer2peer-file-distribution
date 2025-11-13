@@ -1,5 +1,6 @@
 #include "remote_procedure.h"
 #include "nodes.h"
+#include "peer_table.h"
 #include "peers.h"
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -17,6 +18,7 @@ int call_rpc(int s_fd, METHOD method, void *payload, size_t payload_sz,
   };
 
   memcpy(c_body.payload, payload, payload_sz);
+
   rpc_msg msg = {
       .correlation_id = "random value",
       .msg_type = htons(CALL),
@@ -103,7 +105,6 @@ int recv_rpc(int s_fd, node_t *node, rpc_msg *rpc_msg,
   rpc_msg->msg_type = ntohs(rpc_msg->msg_type);
 
   if (rpc_msg->msg_type == CALL) {
-
     printf("[RPC TYPE]: CALL\n");
     switch (rpc_msg->body.cbody.method) {
     case GET_PEERS: {
@@ -132,13 +133,19 @@ int recv_rpc(int s_fd, node_t *node, rpc_msg *rpc_msg,
       }
 
       printf("[TEST]: peer bucket len to be sent =%ld\n", peer_bucket_buf->len);
-      for (int i = 0; i < peer_bucket_buf->len; i++) {
-        peer_t cp = (*peer_bucket_buf->data)[i];
-        printf("[TEST]: ip=%s, port=%d\n", cp.ip, cp.port);
-      }
 
       // replies back to the requester with the
       // call result expected from a method
+      uint8_t buffer[MAX_PAYLOAD_SIZE];
+      buffer[0] = peer_bucket_buf->len; // first byte stores length
+                                        // populate data into the buffer
+      memcpy(buffer + 1, peer_bucket_buf->data,
+             sizeof(peer_t) * peer_bucket_buf->len);
+
+      peer_t p_buf[MAX_PEERS];
+      memcpy(&p_buf, buffer + 1, sizeof(p_buf));
+      printf("[TEST CASTED BUF]: ip=%s, port=%d\n", p_buf[0].ip, p_buf[0].port);
+      return 0;
       reply_rpc(s_fd, rpc_msg->body.cbody.method, peer_bucket_buf->data,
                 sizeof(peer_t) * peer_bucket_buf->len, reply_to,
                 rpc_msg->correlation_id, OK);

@@ -15,7 +15,7 @@ typedef enum {
 typedef struct {
   char ip[15];
   uint16_t port;
-  char *job_id; // determine what it is doing currently
+  char job_id[16]; // determine what it is doing currently
   PEER_STATE state;
 } peer_t;
 
