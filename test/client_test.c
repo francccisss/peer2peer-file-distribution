@@ -19,7 +19,7 @@ int main() {
   struct sockaddr_in src;
 
   node_t node = {
-		.id = "14",
+      .id = "14",
       .ip = "localhost",
       .port = 6969,
   };
@@ -28,10 +28,11 @@ int main() {
   file_info file = {.file_hash = "13", .date_created = "November 6 2025"};
   src.sin_family = AF_INET;
   src.sin_port = htons(node.port);
-  inet_pton(AF_INET, node.ip, &(src.sin_addr));
+  src.sin_addr.s_addr = INADDR_ANY;
 
   int sfd = socket(AF_INET, SOCK_DGRAM, 0);
   int r = bind(sfd, (struct sockaddr *)&src, sizeof(src));
+
   if (r == -1) {
     perror("[ERROR] Socket bind");
     exit(-1);
@@ -44,20 +45,19 @@ int main() {
   // compare_hash(node.neighbors, N_COUNT, file.file_hash, closest_neighbors);
 
   push_node(neighboring_nodes,
-            (node_t){.distance = 1, .ip = "localhost", .port = 4206});
-  get_peers(sfd, neighboring_nodes, "13");
+            (node_t){.distance = 1, .ip = "localhost", .port = 3000});
 
-  const int BUFFER_SIZE = 2048;
+  get_peers(sfd, neighboring_nodes, file.file_hash);
 
   rpc_msg msg_buffer;
   while (1) {
-    int r = recvfrom(sfd, &msg_buffer, BUFFER_SIZE, 0, NULL, 0);
+    int r = recvfrom(sfd, &msg_buffer, sizeof(msg_buffer), 0, NULL, 0);
     if (r == -1) {
       perror("[ERROR] Socket bind");
       exit(-1);
     }
+    recv_rpc(sfd, &msg_buffer, neighboring_nodes, &node);
   }
-  recv_rpc(sfd, &msg_buffer, neighboring_nodes, &node);
 
   return 0;
 }

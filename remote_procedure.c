@@ -16,7 +16,6 @@ int call_rpc(int s_fd, METHOD method, void *payload, size_t payload_sz,
       .method = htons(method),
   };
 
-  printf("sizeofNULL = %ld\n", sizeof(NULL));
   memcpy(c_body.payload, payload, payload_sz);
   rpc_msg msg = {
       .correlation_id = "random value",
@@ -41,7 +40,8 @@ int call_rpc(int s_fd, METHOD method, void *payload, size_t payload_sz,
 }
 
 int reply_rpc(int s_fd, METHOD method, void *payload, size_t payload_sz,
-              origin reply_to, char *correlation_id, MSG_STATUS msg_status) {
+              origin reply_to, char correlation_id[CORRELATAION_ID_SIZE],
+              MSG_STATUS msg_status) {
 
   struct sockaddr_in dest;
 

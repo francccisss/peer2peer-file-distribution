@@ -30,13 +30,13 @@ int main() {
   node_t node = {
       .id = "12",
       .ip = "localhost",
-      .port = 4206,
+      .port = 3000,
   };
 
   struct sockaddr_in src;
   src.sin_port = htons(node.port);
   src.sin_family = AF_INET;
-  inet_pton(AF_INET, node.ip, &(src.sin_addr));
+  src.sin_addr.s_addr = INADDR_ANY;
 
   int sfd = socket(AF_INET, SOCK_DGRAM, 0);
 
@@ -61,13 +61,6 @@ int main() {
   }
 
   compare_hash(neighboring_nodes, neighboring_nodes->len, file.file_hash);
-
-  call_body body = {.method = htons(GET_PEERS)};
-  memcpy(body.payload, file.file_hash, 32);
-  rpc_msg call = {.correlation_id = "",
-                  .msg_type = htons(CALL),
-                  .body.cbody = body,
-                  .origin = {.ip = "localhost", .port = htons(1234)}};
 
   printf("sorted neighbor len %ld", neighboring_nodes->len);
   init_table(&node.peer_table);
@@ -100,7 +93,7 @@ int main() {
       perror("[ERROR] Socket bind");
       exit(-1);
     }
+    recv_rpc(sfd, &msg_buffer, neighboring_nodes, &node);
   }
-  recv_rpc(sfd, &msg_buffer, neighboring_nodes, &node);
   return 0;
 }

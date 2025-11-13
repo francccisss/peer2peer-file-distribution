@@ -16,9 +16,9 @@ void get_peers(int s_fd, node_array *sorted_neighbors, char *hash_info) {
     origin d_host = {
         .port = n.port,
     };
-    strcpy(n.ip, d_host.ip);
+    strcpy(d_host.ip, n.ip);
 
-    int rs = call_rpc(s_fd, GET_PEERS, (void *)0, 0, d_host);
+    int rs = call_rpc(s_fd, GET_PEERS, "wtf", 0, d_host);
 
     if (rs < 0) {
       printf("[WARN]: unable to initiate GET_PEERS call with distance=%d\n",
@@ -30,7 +30,6 @@ void get_peers(int s_fd, node_array *sorted_neighbors, char *hash_info) {
 
 void bootstrap_neigbors(node_array *src, size_t n_count, node_array *dst) {
   for (int i = 0; i < n_count; i++) {
-    printf("%d\n", i);
     push_node(dst, (*src->data)[i]);
   }
 };
@@ -46,8 +45,6 @@ void XORdistance(char *hash_info, node_t *node) {
   for (int i = 0; i < strlen(hash_info); i++) {
     node->distance += hash_info[i] ^ node->id[i];
   };
-
-  printf("[TEST]: XORD distance=%d\n", node->distance);
 }
 
 void compare_hash(node_array *neighbors, size_t n_count, char *hash_info) {
@@ -69,11 +66,6 @@ void compare_hash(node_array *neighbors, size_t n_count, char *hash_info) {
       j--;
     };
     i++;
-  }
-
-  for (int i = 0; i < n_count; i++) {
-    printf("[TEST] distance from hash sorted=%d\n",
-           (*neighbors->data)[i].distance);
   }
 };
 

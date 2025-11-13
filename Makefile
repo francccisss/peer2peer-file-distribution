@@ -21,11 +21,16 @@ test_build_gdb: ./test/rpc_test.c
 	gdb ./test/test
 
 
-
 test_rpc: ./test/rpc_test.c
 	echo "Running RPC"
-	gcc -Wall ./test/rpc_test.c peers.c remote_procedure.c peer_table.c nodes.c -o ./test/test
+	gcc -Wall ./test/rpc_test.c peers.c remote_procedure.c peer_table.c nodes.c -o ./test/main
 	echo "Compiling with warning args"
-	./test/test
+	./test/main
+
+test_rpc_c: ./test/rpc_test.c
+	echo "Running RPC client"
+	gcc -Wall ./test/client_test.c peers.c remote_procedure.c peer_table.c nodes.c -o ./test/client_test
+	echo "Compiling with warning args"
+	./test/client_test
 
 
