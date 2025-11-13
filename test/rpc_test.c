@@ -11,7 +11,9 @@ typedef struct {
 
 int main() {
 
+
   node_array *BOOTSTRAP_NODES = new_node_array();
+
 
   push_node(BOOTSTRAP_NODES, (node_t){.id = "55", .ip = "", .port = 5432});
   push_node(BOOTSTRAP_NODES, (node_t){.id = "10", .ip = "", .port = 4292});
@@ -45,7 +47,7 @@ int main() {
 
   compare_hash(neighboring_nodes, neighboring_nodes->len, file.file_hash);
 
-  call_body body = {.type = htons(GET_PEERS)};
+  call_body body = {.method = htons(GET_PEERS)};
   memcpy(body.payload, file.file_hash, 32);
   rpc_msg call = {.correlation_id = "some random value",
                   .msg_type = htons(CALL),
@@ -73,6 +75,9 @@ int main() {
                .job_id = "job?!?1",
                .state = SEED_ST});
 
-  recv_rpc(0, &call, neighboring_nodes, &node);
+  printf("[TEST] total size of rpc message =%ld\n", sizeof(rpc_msg));
+  printf("[TEST] total size of reply body =%ld\n", sizeof(reply_body));
+  printf("[TEST] total size of call body =%ld\n", sizeof(call_body));
+  // recv_rpc(0, &call, neighboring_nodes, &node);
   return 0;
 }

@@ -11,14 +11,14 @@
 
 // TODO: set call and replies data payload hton
 // TODO: set recv from ntoh
-int call_rpc(int s_fd, RPC_TYPE rpc_type, void *buffer, size_t buf_sz,
+int call_rpc(int s_fd, METHOD method, void *payload, size_t payload_sz,
              origin reply_to) {
 
   call_body c_body = {
-      .type = htons(rpc_type),
+      .method = htons(method),
   };
 
-  memcpy(c_body.payload, buffer, sizeof(buf_sz));
+  memcpy(c_body.payload, payload, sizeof(payload_sz));
 
   rpc_msg msg = {
       .correlation_id = "random value",
@@ -42,7 +42,7 @@ int call_rpc(int s_fd, RPC_TYPE rpc_type, void *buffer, size_t buf_sz,
   return 0;
 }
 
-int reply_rpc(int s_fd, RPC_TYPE rpc_type, void *buffer, size_t buf_sz,
+int reply_rpc(int s_fd, METHOD method, void *payload, size_t payload_sz,
               origin reply_to, char *correlation_id, MSG_STATUS msg_status) {
 
   struct sockaddr_in dest;
@@ -53,20 +53,28 @@ int reply_rpc(int s_fd, RPC_TYPE rpc_type, void *buffer, size_t buf_sz,
   inet_pton(AF_INET, reply_to.ip, &(dest.sin_addr));
 
   reply_body r_body = {
-      .type = htons(rpc_type),
+      .method = htons(method),
       .status = htons(msg_status),
   };
 
-  memcpy(r_body.payload, buffer, sizeof(buf_sz));
+  /*
+   * segment the payload else ip fragmentation since udp does not
+   * automatically segment the size
+   *
+   * if payload_sz > sizeof(rpc_msg)struct : exceeds maximum segment size
+   *
+   *
+   */
 
-  // segment the payload
+  memcpy(r_body.payload, payload, sizeof(payload_sz));
+
   rpc_msg msg = {
-      .correlation_id = correlation_id,
       .segment_count = htonl(0),
       .segment_number = htonl(0),
       .msg_type = htons(CALL),
       .body.rbody = r_body,
   };
+  strcpy(msg.correlation_id, correlation_id);
 
   long n_sent = sendto(s_fd, &msg, sizeof(msg), 0, (struct sockaddr *)&dest,
                        sizeof(dest));
@@ -77,7 +85,6 @@ int reply_rpc(int s_fd, RPC_TYPE rpc_type, void *buffer, size_t buf_sz,
   return 0;
 };
 
-// TODO: convert from network to host byte ordering
 int recv_rpc(int s_fd, rpc_msg *call, node_array *sorted_neighbors,
              node_t *node) {
   origin reply_to = {.port = ntohs(call->origin.port)};
@@ -86,12 +93,12 @@ int recv_rpc(int s_fd, rpc_msg *call, node_array *sorted_neighbors,
   printf("[TEST]: sender destination ip=%s, port=%d\n", reply_to.ip,
          reply_to.port);
 
-  call->body.cbody.type = ntohs(call->body.cbody.type);
+  call->body.cbody.method = ntohs(call->body.cbody.method);
   call->segment_count = ntohl(call->segment_count);
   call->segment_number = ntohl(call->segment_number);
   call->msg_type = ntohs(call->msg_type);
 
-  switch (call->body.cbody.type) {
+  switch (call->body.cbody.method) {
   case GET_PEERS: {
     printf("GET PEERS BROO\n");
     char *hash = (char *)call->body.cbody.payload;
@@ -99,7 +106,7 @@ int recv_rpc(int s_fd, rpc_msg *call, node_array *sorted_neighbors,
 
     if (strcmp(hash, "") < 0) {
       printf("[ERROR] hash is empty");
-      reply_rpc(s_fd, call->body.cbody.type, NULL, 0, reply_to,
+      reply_rpc(s_fd, call->body.cbody.method, NULL, 0, reply_to,
                 call->correlation_id, ERR);
       break;
     }
@@ -121,6 +128,10 @@ int recv_rpc(int s_fd, rpc_msg *call, node_array *sorted_neighbors,
       peer_t cp = (*peer_bucket_buf->data)[i];
       printf("[TEST]: ip=%s, port=%d\n", cp.ip, cp.port);
     }
+
+    reply_rpc(s_fd, call->body.cbody.method, peer_bucket_buf->data,
+              sizeof(peer_t) * peer_bucket_buf->len, reply_to,
+              call->correlation_id, OK);
     break;
   }
   default:

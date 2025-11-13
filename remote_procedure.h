@@ -5,33 +5,34 @@
 #include <netinet/in.h>
 #include <stddef.h>
 #include <stdint.h>
-#define MAX_BUFFER_SIZE 1024
+#define MAX_PAYLOAD_SIZE 1024
 
+#define CORRELATAION_ID_SIZE 16
+
+/*
+ * method is read by the receiver, to issue the appropriate routine to
+ * execute based on the call type of the sender.
+ *
+ * each host/node will have lookup table or a call table where it processes the
+ * datagram from a host, extracts the method and uses that as an entry
+ * to the corresponding routine pointer in that table
+ *
+ */
 typedef enum {
   GET_PEERS,
   JOIN,
   LEECH,
   SEED,
-} RPC_TYPE;
+} METHOD;
 
 typedef enum {
   ERR = -1,
   OK,
 } MSG_STATUS;
-/*
- * rpc_type is read by the receiver, to issue the appropriate routine to
- * execute based on the call type of the sender.
- *
- * each host/node will have lookup table or a call table where it processes the
- * datagram from a host, extracts the rpc_type and uses that as an entry
- * to the corresponding routine pointer in that table
- *
- * payload is the data iteself that will be populated by the
- *
- */
+
 typedef struct {
-  RPC_TYPE type;
-  uint8_t payload[MAX_BUFFER_SIZE];
+  uint8_t payload[MAX_PAYLOAD_SIZE];
+  METHOD method;
 } call_body;
 
 /*
@@ -44,14 +45,14 @@ typedef struct {
  *  check the type
  *  shape the type into the appropriate expected type
  *  since the payload is just an array of bytes
- *  and recvfrom populates the (void *buffer) arg
+ *  and recvfrom populates the (void *payload) arg
  *
  */
 
 typedef struct {
-  RPC_TYPE type;
-  uint8_t payload[MAX_BUFFER_SIZE];
+  METHOD method;
   MSG_STATUS status;
+  uint8_t payload[MAX_PAYLOAD_SIZE];
 } reply_body;
 
 typedef enum {
@@ -60,8 +61,8 @@ typedef enum {
 } MSG_TYPE;
 
 typedef struct {
-  char ip[INET_ADDRSTRLEN];
   uint16_t port;
+  char ip[INET_ADDRSTRLEN];
 } origin;
 
 /*
@@ -83,25 +84,26 @@ typedef struct {
  */
 
 typedef struct {
-  char *correlation_id;
-  uint16_t segment_number;
   size_t segment_count;
   MSG_TYPE msg_type;
   origin origin;
+  uint16_t segment_number;
   union {
     call_body cbody;
     reply_body rbody;
   } body;
+  char correlation_id[CORRELATAION_ID_SIZE];
 } rpc_msg;
 
 // calls dont need to take up that much memory to be used in arg, unless it
 // is a response/reply from the call, the arg is used to pass in additional
 // information .
-int call_rpc(int s_fd, RPC_TYPE rpc_type, void *arg, size_t buf_sz,
+int call_rpc(int s_fd, METHOD method, void *arg, size_t payload_sz,
              origin d_host);
 
-int reply_rpc(int s_fd, RPC_TYPE rpc_type, void *buffer, size_t buf_sz,
-              origin d_host, char *correlation_id, MSG_STATUS msg_status);
+int reply_rpc(int s_fd, METHOD method, void *payload, size_t payload_sz,
+              origin d_host, char correlation_id[CORRELATAION_ID_SIZE],
+              MSG_STATUS msg_status);
 
 int recv_rpc(int sf_d, rpc_msg *reply, node_array *sorted_neighbors,
              node_t *node);
