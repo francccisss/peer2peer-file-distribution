@@ -8,9 +8,10 @@
 #include <stdint.h>
 #define MAX_NEIGHBORS 20
 #define PROXIMITY_THRESHOLD 300 // any XOR metric less than or equal to 300
+#define ID_SIZE 36
 
 typedef struct {
-  char *id;
+  char id[ID_SIZE];
   char ip[INET_ADDRSTRLEN];
   uint16_t port;
   uint32_t distance;
@@ -29,7 +30,7 @@ typedef struct {
 void bootstrap_neigbors(node_array *src, size_t n_count, node_array *dst);
 
 /*
- * returns back an array of neighbors within close proximity to the file
+ * returns back an array of neighbors within close proximity to the f0ile
  * object's info_hash in a sorted order using the distance as the entry
  * for the node
  *
@@ -41,9 +42,9 @@ void bootstrap_neigbors(node_array *src, size_t n_count, node_array *dst);
  * - no neighbors
  */
 
-void compare_hash(node_array *neighbors, size_t n_count, char *hash_info);
+void compare_hash(node_array *neighbors, size_t n_count, char hash_info[ID_SIZE]);
 
-void XORdistance(char *hash_info, node_t *node);
+void XORdistance(char hash_info[ID_SIZE], node_t *node);
 
 /*
  * responsible for connecting to the neigbors that are within close proximity
