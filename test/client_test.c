@@ -1,0 +1,63 @@
+
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/socket.h>
+
+#include "../nodes.h"
+#include "../remote_procedure.h"
+
+typedef struct {
+  char file_hash[32];
+  char *date_created;
+  struct node_t **known_nodes;
+} file_info;
+
+int main() {
+  struct sockaddr_in src;
+
+  node_t node = {
+		.id = "14",
+      .ip = "localhost",
+      .port = 6969,
+  };
+
+  // what is being distributed
+  file_info file = {.file_hash = "13", .date_created = "November 6 2025"};
+  src.sin_family = AF_INET;
+  src.sin_port = htons(node.port);
+  inet_pton(AF_INET, node.ip, &(src.sin_addr));
+
+  int sfd = socket(AF_INET, SOCK_DGRAM, 0);
+  int r = bind(sfd, (struct sockaddr *)&src, sizeof(src));
+  if (r == -1) {
+    perror("[ERROR] Socket bind");
+    exit(-1);
+  }
+
+  node_array *neighboring_nodes = new_node_array();
+
+  // for now for every file, a new process is created instead
+  // of reusing the same process
+  // compare_hash(node.neighbors, N_COUNT, file.file_hash, closest_neighbors);
+
+  push_node(neighboring_nodes,
+            (node_t){.distance = 1, .ip = "localhost", .port = 4206});
+  get_peers(sfd, neighboring_nodes, "13");
+
+  const int BUFFER_SIZE = 2048;
+
+  rpc_msg msg_buffer;
+  while (1) {
+    int r = recvfrom(sfd, &msg_buffer, BUFFER_SIZE, 0, NULL, 0);
+    if (r == -1) {
+      perror("[ERROR] Socket bind");
+      exit(-1);
+    }
+  }
+  recv_rpc(sfd, &msg_buffer, neighboring_nodes, &node);
+
+  return 0;
+}

@@ -1,7 +1,11 @@
 #include "../nodes.h"
 #include "../remote_procedure.h"
+#include <arpa/inet.h>
+#include <netinet/in.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <sys/socket.h>
 
 typedef struct {
   char file_hash[32];
@@ -11,9 +15,7 @@ typedef struct {
 
 int main() {
 
-
   node_array *BOOTSTRAP_NODES = new_node_array();
-
 
   push_node(BOOTSTRAP_NODES, (node_t){.id = "55", .ip = "", .port = 5432});
   push_node(BOOTSTRAP_NODES, (node_t){.id = "10", .ip = "", .port = 4292});
@@ -28,8 +30,21 @@ int main() {
   node_t node = {
       .id = "12",
       .ip = "localhost",
-      .port = 6969,
+      .port = 4206,
   };
+
+  struct sockaddr_in src;
+  src.sin_port = htons(node.port);
+  src.sin_family = AF_INET;
+  inet_pton(AF_INET, node.ip, &(src.sin_addr));
+
+  int sfd = socket(AF_INET, SOCK_DGRAM, 0);
+
+  int r = bind(sfd, (struct sockaddr *)&src, sizeof(src));
+  if (r == -1) {
+    perror("[ERROR] Socket bind");
+    exit(r);
+  }
 
   // what is being distributed
   file_info file = {.file_hash = "13", .date_created = "November 6 2025"};
@@ -49,7 +64,7 @@ int main() {
 
   call_body body = {.method = htons(GET_PEERS)};
   memcpy(body.payload, file.file_hash, 32);
-  rpc_msg call = {.correlation_id = "some random value",
+  rpc_msg call = {.correlation_id = "",
                   .msg_type = htons(CALL),
                   .body.cbody = body,
                   .origin = {.ip = "localhost", .port = htons(1234)}};
@@ -78,6 +93,14 @@ int main() {
   printf("[TEST] total size of rpc message =%ld\n", sizeof(rpc_msg));
   printf("[TEST] total size of reply body =%ld\n", sizeof(reply_body));
   printf("[TEST] total size of call body =%ld\n", sizeof(call_body));
-  // recv_rpc(0, &call, neighboring_nodes, &node);
+  rpc_msg msg_buffer;
+  while (1) {
+    int r = recvfrom(sfd, &msg_buffer, sizeof(rpc_msg), 0, NULL, 0);
+    if (r == -1) {
+      perror("[ERROR] Socket bind");
+      exit(-1);
+    }
+  }
+  recv_rpc(sfd, &msg_buffer, neighboring_nodes, &node);
   return 0;
 }

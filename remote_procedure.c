@@ -64,6 +64,7 @@ int reply_rpc(int s_fd, METHOD method, void *payload, size_t payload_sz,
    * if payload_sz > sizeof(rpc_msg)struct : exceeds maximum segment size
    *
    *
+   *
    */
 
   memcpy(r_body.payload, payload, sizeof(payload_sz));
@@ -93,6 +94,7 @@ int recv_rpc(int s_fd, rpc_msg *call, node_array *sorted_neighbors,
   printf("[TEST]: sender destination ip=%s, port=%d\n", reply_to.ip,
          reply_to.port);
 
+	return 0;
   call->body.cbody.method = ntohs(call->body.cbody.method);
   call->segment_count = ntohl(call->segment_count);
   call->segment_number = ntohl(call->segment_number);
