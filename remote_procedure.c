@@ -9,8 +9,6 @@
 #include <string.h>
 #include <sys/socket.h>
 
-// TODO: set call and replies data payload hton
-// TODO: set recv from ntoh
 int call_rpc(int s_fd, METHOD method, void *payload, size_t payload_sz,
              origin reply_to) {
 
@@ -18,8 +16,8 @@ int call_rpc(int s_fd, METHOD method, void *payload, size_t payload_sz,
       .method = htons(method),
   };
 
-  memcpy(c_body.payload, payload, sizeof(payload_sz));
-
+  printf("sizeofNULL = %ld\n", sizeof(NULL));
+  memcpy(c_body.payload, payload, payload_sz);
   rpc_msg msg = {
       .correlation_id = "random value",
       .msg_type = htons(CALL),
@@ -86,58 +84,78 @@ int reply_rpc(int s_fd, METHOD method, void *payload, size_t payload_sz,
   return 0;
 };
 
-int recv_rpc(int s_fd, rpc_msg *call, node_array *sorted_neighbors,
+int recv_rpc(int s_fd, rpc_msg *rpc_msg, node_array *sorted_neighbors,
              node_t *node) {
-  origin reply_to = {.port = ntohs(call->origin.port)};
-  strcpy(reply_to.ip, call->origin.ip);
+  origin reply_to = {.port = ntohs(rpc_msg->origin.port)};
+  strcpy(reply_to.ip, rpc_msg->origin.ip);
 
   printf("[TEST]: sender destination ip=%s, port=%d\n", reply_to.ip,
          reply_to.port);
 
-	return 0;
-  call->body.cbody.method = ntohs(call->body.cbody.method);
-  call->segment_count = ntohl(call->segment_count);
-  call->segment_number = ntohl(call->segment_number);
-  call->msg_type = ntohs(call->msg_type);
+  rpc_msg->body.cbody.method = ntohs(rpc_msg->body.cbody.method);
+  rpc_msg->segment_count = ntohl(rpc_msg->segment_count);
+  rpc_msg->segment_number = ntohl(rpc_msg->segment_number);
+  rpc_msg->msg_type = ntohs(rpc_msg->msg_type);
 
-  switch (call->body.cbody.method) {
-  case GET_PEERS: {
-    printf("GET PEERS BROO\n");
-    char *hash = (char *)call->body.cbody.payload;
-    printf("[TEST] incoming hash %s\n", hash);
+  if (rpc_msg->msg_type == CALL) {
 
-    if (strcmp(hash, "") < 0) {
-      printf("[ERROR] hash is empty");
-      reply_rpc(s_fd, call->body.cbody.method, NULL, 0, reply_to,
-                call->correlation_id, ERR);
-      break;
+    switch (rpc_msg->body.cbody.method) {
+    case GET_PEERS: {
+      printf("GET PEERS BROO\n");
+      char *hash = (char *)rpc_msg->body.cbody.payload;
+      printf("[TEST] incoming hash %s\n", hash);
+
+      if (strcmp(hash, "") < 0) {
+        printf("[ERROR] hash is empty");
+        reply_rpc(s_fd, rpc_msg->body.cbody.method, NULL, 0, reply_to,
+                  rpc_msg->correlation_id, ERR);
+        break;
+      }
+
+      peer_bucket_t *peer_bucket_buf = malloc(sizeof(peer_t));
+      if (peer_bucket_buf == NULL) {
+        perror("[ERROR] malloc");
+        exit(1);
+      };
+
+      get(&node->peer_table, hash, &peer_bucket_buf);
+      if (peer_bucket_buf == NULL) {
+        printf("[TEST]: table does not exist call get peers\n");
+        // get_peers(s_fd, sorted_neighbors, hash);
+        break;
+      }
+
+      printf("[TEST]: peer bucket len to be sent =%ld\n", peer_bucket_buf->len);
+      for (int i = 0; i < peer_bucket_buf->len; i++) {
+        peer_t cp = (*peer_bucket_buf->data)[i];
+        printf("[TEST]: ip=%s, port=%d\n", cp.ip, cp.port);
+      }
+
+      // replies back to the requester with the
+      // call result expected from a method
+      reply_rpc(s_fd, rpc_msg->body.cbody.method, peer_bucket_buf->data,
+                sizeof(peer_t) * peer_bucket_buf->len, reply_to,
+                rpc_msg->correlation_id, OK);
+      return 0;
     }
+    default:
+      printf("no existing call type");
+      return 0;
+    }
+  } else {
 
-    peer_bucket_t *peer_bucket_buf = malloc(sizeof(peer_t));
-    if (peer_bucket_buf == NULL) {
-      perror("[ERROR] malloc");
-      exit(1);
+    switch (rpc_msg->body.rbody.method) {
+    case GET_PEERS:
+      // make this into a reusable function that takes in an input
+      if (rpc_msg->body.rbody.status != OK) {
+        printf("Unable to retrieve peers from nodes\n");
+        return -1;
+      }
+      printf("AYAYAYA\n");
+      break;
+    default:
+      break;
     };
-    get(&node->peer_table, hash, &peer_bucket_buf);
-    if (peer_bucket_buf == NULL) {
-      printf("[TEST]: table does not exist call get peers\n");
-      // get_peers(s_fd, sorted_neighbors, hash);
-      break;
-    }
-
-    printf("[TEST]: peer bucket len =%ld\n", peer_bucket_buf->len);
-    for (int i = 0; i < peer_bucket_buf->len; i++) {
-      peer_t cp = (*peer_bucket_buf->data)[i];
-      printf("[TEST]: ip=%s, port=%d\n", cp.ip, cp.port);
-    }
-
-    reply_rpc(s_fd, call->body.cbody.method, peer_bucket_buf->data,
-              sizeof(peer_t) * peer_bucket_buf->len, reply_to,
-              call->correlation_id, OK);
-    break;
-  }
-  default:
-    printf("no existing call type");
   }
 
   return 0;
