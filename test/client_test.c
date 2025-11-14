@@ -10,7 +10,7 @@
 #include "../remote_procedure.h"
 
 typedef struct {
-  char file_hash[32];
+  char file_hash[ID_SIZE];
   char *date_created;
   struct node_t **known_nodes;
 } file_info;

@@ -64,12 +64,9 @@ int reply_rpc(int s_fd, METHOD method, void *payload, size_t payload_sz,
    * automatically segment the size
    *
    * if payload_sz > sizeof(rpc_msg)struct : exceeds maximum segment size
-   *
-   *
-   *
    */
 
-  memcpy(r_body.payload, payload, sizeof(payload_sz));
+  memcpy(&r_body.payload, payload, payload_sz);
 
   rpc_msg msg = {
       .segment_count = htonl(0),
@@ -143,11 +140,12 @@ int recv_rpc(int s_fd, node_t *node, rpc_msg *rpc_msg,
              sizeof(peer_t) * peer_bucket_buf->len);
 
       peer_t p_buf[MAX_PEERS];
-      memcpy(&p_buf, buffer + 1, sizeof(p_buf));
+      memcpy(&p_buf, buffer + 1, sizeof(peer_t) * peer_bucket_buf->len);
+
       printf("[TEST CASTED BUF]: ip=%s, port=%d\n", p_buf[0].ip, p_buf[0].port);
-      return 0;
-      reply_rpc(s_fd, rpc_msg->body.cbody.method, peer_bucket_buf->data,
-                sizeof(peer_t) * peer_bucket_buf->len, reply_to,
+
+      reply_rpc(s_fd, rpc_msg->body.cbody.method, buffer,
+                sizeof(peer_t) * peer_bucket_buf->len + 1, reply_to,
                 rpc_msg->correlation_id, OK);
       return 0;
     }
@@ -166,6 +164,14 @@ int recv_rpc(int s_fd, node_t *node, rpc_msg *rpc_msg,
         return -1;
       }
       printf("AYAYAYA\n");
+
+      peer_t p_buf[MAX_PEERS];
+      uint8_t len = rpc_msg->body.rbody.payload[0];
+
+      memcpy(&p_buf, rpc_msg->body.rbody.payload + 1, sizeof(peer_t) * len);
+
+      printf("[TEST RECEIVED CASTED BUF]: len=%d ip=%s, port=%d\n", len,
+             p_buf[0].ip, p_buf[0].port);
       break;
     default:
       break;

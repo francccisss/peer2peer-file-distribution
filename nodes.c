@@ -19,8 +19,7 @@ void get_peers(int s_fd, node_t *node, node_array *sorted_neighbors,
     };
     strcpy(d_host.ip, n.ip);
 
-    int rs =
-        call_rpc(s_fd, GET_PEERS, hash_info, ID_SIZE, d_host, node);
+    int rs = call_rpc(s_fd, GET_PEERS, hash_info, ID_SIZE, d_host, node);
 
     if (rs < 0) {
       printf("[WARN]: unable to initiate GET_PEERS call with distance=%d\n",
@@ -42,14 +41,14 @@ void bootstrap_neigbors(node_array *src, size_t n_count, node_array *dst) {
 //
 // using uuid for now cause why not :D
 
-void XORdistance(char *hash_info, node_t *node) {
+void XORdistance(char hash_info[ID_SIZE], node_t *node) {
 
   for (int i = 0; i < strlen(hash_info); i++) {
     node->distance += hash_info[i] ^ node->id[i];
   };
 }
 
-void compare_hash(node_array *neighbors, size_t n_count, char *hash_info) {
+void compare_hash(node_array *neighbors, size_t n_count, char hash_info[ID_SIZE]) {
   // sorts neighbors by closest
 
   for (int i = 0; i < n_count; i++) {
