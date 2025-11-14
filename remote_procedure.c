@@ -1,6 +1,5 @@
 #include "remote_procedure.h"
 #include "nodes.h"
-#include "peer_table.h"
 #include "peers.h"
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -122,7 +121,7 @@ int recv_rpc(int s_fd, node_t *node, rpc_msg *rpc_msg,
         exit(1);
       };
 
-      get(&node->peer_table, hash, &peer_bucket_buf);
+      get_peer(&node->peer_table, hash, &peer_bucket_buf);
       if (peer_bucket_buf == NULL) {
         printf("[TEST]: table does not exist call get peers\n");
         get_peers(s_fd, node, sorted_neighbors, hash);
@@ -172,6 +171,8 @@ int recv_rpc(int s_fd, node_t *node, rpc_msg *rpc_msg,
 
       printf("[TEST RECEIVED CASTED BUF]: len=%d ip=%s, port=%d\n", len,
              p_buf[0].ip, p_buf[0].port);
+      for (int i = 0; i < len; i++) {
+      }
       break;
     default:
       break;

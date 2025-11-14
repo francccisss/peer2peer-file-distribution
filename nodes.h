@@ -1,7 +1,7 @@
 #ifndef NODES_H
 #define NODES_H
 
-#include "peer_table.h"
+#include "peers.h"
 #include <netinet/in.h>
 #include <stdbool.h>
 #include <stddef.h>

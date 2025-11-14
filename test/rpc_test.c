@@ -1,4 +1,5 @@
 #include "../nodes.h"
+#include "../peers.h"
 #include "../remote_procedure.h"
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -63,25 +64,25 @@ int main() {
   compare_hash(neighboring_nodes, neighboring_nodes->len, file.file_hash);
 
   printf("sorted neighbor len %ld", neighboring_nodes->len);
-  init_table(&node.peer_table);
+  init_peer_table(&node.peer_table);
 
-  set(&node.peer_table, file.file_hash,
-      (peer_t){.ip = "some ip address",
-               .port = 42069,
-               .job_id = "job?",
-               .state = PASSIVE_ST});
+  set_peer(&node.peer_table, file.file_hash,
+           (peer_t){.ip = "some ip address",
+                    .port = 42069,
+                    .job_id = "job?",
+                    .state = PASSIVE_ST});
 
-  set(&node.peer_table, file.file_hash,
-      (peer_t){.ip = "that ip address",
-               .port = 12345,
-               .job_id = "job!!",
-               .state = LEECH_ST});
+  set_peer(&node.peer_table, file.file_hash,
+           (peer_t){.ip = "that ip address",
+                    .port = 12345,
+                    .job_id = "job!!",
+                    .state = LEECH_ST});
 
-  set(&node.peer_table, file.file_hash,
-      (peer_t){.ip = "what ip address",
-               .port = 52598,
-               .job_id = "job?!?1",
-               .state = SEED_ST});
+  set_peer(&node.peer_table, file.file_hash,
+           (peer_t){.ip = "what ip address",
+                    .port = 52598,
+                    .job_id = "job?!?1",
+                    .state = SEED_ST});
 
   printf("[TEST] total size of rpc message =%ld\n", sizeof(rpc_msg));
   printf("[TEST] total size of reply body =%ld\n", sizeof(reply_body));
