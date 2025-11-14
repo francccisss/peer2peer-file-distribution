@@ -84,7 +84,7 @@ int reply_rpc(int s_fd, METHOD method, void *payload, size_t payload_sz,
   return 0;
 };
 
-int recv_rpc(int s_fd, node_t *node, rpc_msg *rpc_msg,
+int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE], rpc_msg *rpc_msg,
              node_array *sorted_neighbors) {
 
   // grab the port and address of the sender defined by call_rpc
@@ -157,22 +157,33 @@ int recv_rpc(int s_fd, node_t *node, rpc_msg *rpc_msg,
     printf("[RPC TYPE]: REPLY\n");
     switch (rpc_msg->body.rbody.method) {
     case GET_PEERS:
+
       // make this into a reusable function that takes in an input
       if (rpc_msg->body.rbody.status != OK) {
         printf("Unable to retrieve peers from nodes\n");
         return -1;
       }
-      printf("AYAYAYA\n");
 
       peer_t p_buf[MAX_PEERS];
       uint8_t len = rpc_msg->body.rbody.payload[0];
 
       memcpy(&p_buf, rpc_msg->body.rbody.payload + 1, sizeof(peer_t) * len);
 
-      printf("[TEST RECEIVED CASTED BUF]: len=%d ip=%s, port=%d\n", len,
-             p_buf[0].ip, p_buf[0].port);
       for (int i = 0; i < len; i++) {
+
+        set_peer(&node->peer_table, file_hash, p_buf[i]);
       }
+
+      peer_bucket_t *bucket_buf;
+      get_peer(&node->peer_table, file_hash, &bucket_buf);
+
+      for (int i = 0; i < bucket_buf->len; i++) {
+
+        printf("[TEST BUCKET BUF]: len=%ld ip=%s, port=%d\n",
+               bucket_buf->len, (*bucket_buf->data)[i].ip,
+               (*bucket_buf->data)[i].port);
+      }
+
       break;
     default:
       break;

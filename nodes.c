@@ -48,7 +48,8 @@ void XORdistance(char hash_info[ID_SIZE], node_t *node) {
   };
 }
 
-void compare_hash(node_array *neighbors, size_t n_count, char hash_info[ID_SIZE]) {
+void compare_hash(node_array *neighbors, size_t n_count,
+                  char hash_info[ID_SIZE]) {
   // sorts neighbors by closest
 
   for (int i = 0; i < n_count; i++) {

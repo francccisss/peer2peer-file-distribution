@@ -112,6 +112,6 @@ int reply_rpc(int s_fd, METHOD method, void *payload, size_t payload_sz,
               origin d_host, char correlation_id[CORRELATAION_ID_SIZE],
               MSG_STATUS msg_status);
 
-int recv_rpc(int sf_d, node_t *node, rpc_msg *reply,
-             node_array *sorted_neighbors );
+int recv_rpc(int sf_d, node_t *node, char file_hash[ID_SIZE], rpc_msg *reply,
+             node_array *sorted_neighbors);
 #endif

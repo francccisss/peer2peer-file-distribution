@@ -31,10 +31,11 @@ uint32_t hash(const char *input) {
 
 void set_peer(peer_bucket_t *(*table)[MAX_PEERS], const char *key,
               const peer_t data) {
+
   const uint32_t hash_key = hash(key);
   // current peer_bucket is occupied given by hash
   printf("[TEST]: peer_bucket key value: %d\n", (*table)[hash_key]->key);
-  // just because it's not equal doesn't mean it does not exist
+  // // just because it's not equal doesn't mean it does not exist
 
   /// does a peer_bucket with this hash_key exist
   if ((*table)[hash_key]->active) {

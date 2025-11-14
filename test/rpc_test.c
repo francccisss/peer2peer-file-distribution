@@ -95,7 +95,7 @@ int main() {
       exit(-1);
     }
 
-    recv_rpc(sfd, &node, &msg_buffer, neighboring_nodes);
+    recv_rpc(sfd, &node, file.file_hash, &msg_buffer, neighboring_nodes);
   }
   return 0;
 }

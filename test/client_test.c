@@ -49,6 +49,8 @@ int main() {
 
   get_peers(sfd, &node, neighboring_nodes, file.file_hash);
 
+  init_peer_table(&node.peer_table);
+
   rpc_msg msg_buffer;
   while (1) {
     int r = recvfrom(sfd, &msg_buffer, sizeof(msg_buffer), 0, NULL, 0);
@@ -56,7 +58,7 @@ int main() {
       perror("[ERROR] Socket bind");
       exit(-1);
     }
-    recv_rpc(sfd, &node, &msg_buffer, neighboring_nodes);
+    recv_rpc(sfd, &node, file.file_hash, &msg_buffer, neighboring_nodes);
   }
 
   return 0;
