@@ -42,8 +42,8 @@ void ping();
 void init_peer_table(peer_bucket_t *(*unint_table)[MAX_PEER_BUCKETS]);
 void set_peer(peer_bucket_t *(*table)[MAX_PEER_BUCKETS], const char *key,
               peer_t data);
-void get_peer(peer_bucket_t *(*table)[MAX_PEER_BUCKETS], const char *key,
-              peer_bucket_t **peer_bucket_buf);
+void get_peer_bucket(peer_bucket_t *(*table)[MAX_PEER_BUCKETS], const char *key,
+                     peer_bucket_t **peer_bucket_buf);
 uint32_t hash(const char *input);
 
 peer_bucket_t *new_peer_array();

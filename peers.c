@@ -60,15 +60,14 @@ void set_peer(peer_bucket_t *(*table)[MAX_PEER_BUCKETS], const char *key,
 }
 
 /*
- *  key represents the info_hash which is used as a peer_bucket entry to the
+ * key represents the info_hash which is used as a peer_bucket entry to the
  * hash table, it returns the list of peers within that network for the new node
- * to connect to
+ * to connect to, if the bucket does not exist, the peer_bucket_buf will return
+ * a NULL value
+ *
  */
 
-/// This is bad, because the insertion in this hashmap, where 2 keys might
-/// collide which results into a linear probing, so insertion time == retrieval
-/// time as insertion increases linearly
-void get_peer(peer_bucket_t *(*table)[MAX_PEER_BUCKETS], const char *key,
+void get_peer_bucket(peer_bucket_t *(*table)[MAX_PEER_BUCKETS], const char *key,
               peer_bucket_t **peer_bucket_buf) {
   const uint32_t hash_key = hash(key);
   uint32_t current_key = (*table)[hash_key]->key;
@@ -82,6 +81,7 @@ void get_peer(peer_bucket_t *(*table)[MAX_PEER_BUCKETS], const char *key,
 
   // (current_key...MAX_PEER_BUCKETS-1) yikes
   printf("[INFO]: peer_bucket does not exist");
+  *peer_bucket_buf = NULL;
 }
 
 peer_bucket_t *new_peer_array() {

@@ -116,18 +116,54 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE], rpc_msg *rpc_msg,
         break;
       }
 
-      peer_bucket_t *peer_bucket_buf = malloc(sizeof(peer_bucket_t));
+      peer_bucket_t *peer_bucket_buf = calloc(0, sizeof(peer_bucket_t));
       if (peer_bucket_buf == NULL) {
         perror("[ERROR]: malloc");
-					return -1;
+        return -1;
       };
 
-      get_peer(&node->peer_table, hash, &peer_bucket_buf);
+      get_peer_bucket(&node->peer_table, hash, &peer_bucket_buf);
+
+      // check if table exists
       if (peer_bucket_buf == NULL) {
-        printf("[TEST]: table does not exist call get peers\n");
-        get_peers(s_fd, node, sorted_neighbors, hash);
+        // only send the len which is the first byte of the buffer
+        printf("[NOTIF]: no peer table entry\n");
+        uint8_t buffer[1];
+        buffer[0] = 0;
+        int r = reply_rpc(s_fd, rpc_msg->body.cbody.method, buffer, 1, reply_to,
+                          rpc_msg->correlation_id, OK);
+        if (r < 0) {
+          printf("[ERROR]: Unable to send datagram back to caller\n");
+          return -1;
+        }
         return 0;
       }
+
+      if (sorted_neighbors->len == 0 && peer_bucket_buf->len == 0) {
+        // reply back to the caller with empty peer and 0 len
+        // only send the len which is the first byte of the buffer
+        printf("[NOTIF]: no peer table entry\n");
+        uint8_t buffer[1];
+        buffer[0] = 0;
+        int r = reply_rpc(s_fd, rpc_msg->body.cbody.method, buffer, 1, reply_to,
+                          rpc_msg->correlation_id, OK);
+        if (r < 0) {
+          printf("[ERROR]: Unable to send datagram back to caller\n");
+          return -1;
+        }
+        printf("[NOTIF]: exhausted neighbors, returning.\n");
+        return 0;
+      }
+
+      if (peer_bucket_buf->len == 0 && sorted_neighbors->len > 0) {
+        // go to current nodes neighbors and send get peers
+        // need to handle this somehow to make i recursive after hitting the
+        // base cases
+        get_peers(s_fd, node, sorted_neighbors, file_hash);
+        printf("[NOTIF]: peer bucket is empty, search neighbors.\n");
+        return 0;
+      }
+
 
       printf("[TEST]: peer bucket len to be sent =%ld\n", peer_bucket_buf->len);
 
@@ -188,6 +224,11 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE], rpc_msg *rpc_msg,
 
       peer_t p_buf[MAX_PEER_BUCKETS];
       uint8_t len = rpc_msg->body.rbody.payload[0];
+
+      // first check if there are peers with the payload, the first byte of the
+      // payload in GET PEERS will always be the length of the peer array
+      // if (len == 0) {
+      // };
 
       memcpy(&p_buf, rpc_msg->body.rbody.payload + 1, sizeof(peer_t) * len);
 

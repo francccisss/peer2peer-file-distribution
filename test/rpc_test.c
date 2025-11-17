@@ -20,7 +20,7 @@ int main() {
 
   push_node(BOOTSTRAP_NODES, (node_t){.id = "55", .ip = "", .port = 5432});
   push_node(BOOTSTRAP_NODES, (node_t){.id = "10", .ip = "", .port = 4292});
-  push_node(BOOTSTRAP_NODES, (node_t){.id = "30", .ip = "", .port = 3000});
+  push_node(BOOTSTRAP_NODES, (node_t){.id = "30", .ip = "", .port = 3090});
   push_node(BOOTSTRAP_NODES, (node_t){.id = "29", .ip = "", .port = 7010});
   push_node(BOOTSTRAP_NODES, (node_t){.id = "24", .ip = "", .port = 7002});
   push_node(BOOTSTRAP_NODES, (node_t){.id = "40", .ip = "", .port = 5060});
@@ -66,23 +66,23 @@ int main() {
   printf("sorted neighbor len %ld", neighboring_nodes->len);
   init_peer_table(&node.peer_table);
 
-  set_peer(&node.peer_table, file.file_hash,
-           (peer_t){.ip = "localhost",
-                    .port = 3000,
-                    .job_id = "THiS NODE?",
-                    .state = PASSIVE_ST});
-
-  set_peer(&node.peer_table, file.file_hash,
-           (peer_t){.ip = "localhost",
-                    .port = 3345,
-                    .job_id = "job!!",
-                    .state = LEECH_ST});
-
-  set_peer(&node.peer_table, file.file_hash,
-           (peer_t){.ip = "localhost",
-                    .port = 5598,
-                    .job_id = "job?!?1",
-                    .state = SEED_ST});
+  // set_peer(&node.peer_table, file.file_hash,
+  //          (peer_t){.ip = "localhost",
+  //                   .port = 3000,
+  //                   .job_id = "THiS NODE?",
+  //                   .state = PASSIVE_ST});
+  //
+  // set_peer(&node.peer_table, file.file_hash,
+  //          (peer_t){.ip = "localhost",
+  //                   .port = 3345,
+  //                   .job_id = "job!!",
+  //                   .state = LEECH_ST});
+  //
+  // set_peer(&node.peer_table, file.file_hash,
+  //          (peer_t){.ip = "localhost",
+  //                   .port = 5598,
+  //                   .job_id = "job?!?1",
+  //                   .state = SEED_ST});
 
   printf("[TEST] total size of rpc message =%ld\n", sizeof(rpc_msg));
   printf("[TEST] total size of reply body =%ld\n", sizeof(reply_body));
@@ -95,10 +95,11 @@ int main() {
       exit(-1);
     }
 
-    int ri = recv_rpc(sfd, &node, file.file_hash, &msg_buffer, neighboring_nodes);
-		if (ri < 0){
-			printf("[ERROR RECV RPC]: Something went wrong");
-		}
+    int ri =
+        recv_rpc(sfd, &node, file.file_hash, &msg_buffer, neighboring_nodes);
+    if (ri < 0) {
+      printf("[ERROR RECV RPC]: Something went wrong");
+    }
   }
   return 0;
 }
