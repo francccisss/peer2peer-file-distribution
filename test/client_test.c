@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/socket.h>
 
 #include "../nodes.h"
@@ -47,7 +48,9 @@ int main() {
   push_node(neighboring_nodes,
             (node_t){.distance = 1, .ip = "localhost", .port = 3000});
 
-  get_peers(sfd, &node, neighboring_nodes, file.file_hash);
+	origin absolute_address = {.port = node.port};
+	strcpy(absolute_address.ip, node.ip);
+  get_peers(sfd, &node, neighboring_nodes, file.file_hash,absolute_address);
 
   init_peer_table(&node.peer_table);
 

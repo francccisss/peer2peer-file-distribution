@@ -31,10 +31,11 @@
  *
  * When JOIN METHOD is used by the caller, the caller does not need to pass in
  * any arguments in *arg since the only thing the it needs to do is go through
- * each peer under the same hash, and sends a join call, the `origin` field of the
- * rpc_message already contains sufficient data for the receiver to append it as
- * a new peer within its own peer_table. When the receiver accepts the join, it replies back
- * a MSG_STATUS as OK with a payload of string that describes the event.
+ * each peer under the same hash, and sends a join call, the `origin` field of
+ * the rpc_message already contains sufficient data for the receiver to append
+ * it as a new peer within its own peer_table. When the receiver accepts the
+ * join, it replies back a MSG_STATUS as OK with a payload of string that
+ * describes the event.
  *
  */
 
@@ -81,11 +82,6 @@ typedef struct {
   uint8_t payload[MAX_PAYLOAD_SIZE];
 } reply_body;
 
-typedef struct {
-  uint16_t port;
-  char ip[INET_ADDRSTRLEN];
-} origin;
-
 /*
  *
  * the correlation_id is used to distinguish the caller of the send() function,
@@ -125,9 +121,14 @@ typedef struct {
  * payload back to, the node which is the current node process, stores the host
  * ip and port.
  *
+ *
+ * d_host destination host :D
+ * host for current host or the host that a node wants to reply back to which will be used by recv_rpc's reply_to parameter
+ * 
+ *
  */
 int call_rpc(int s_fd, METHOD method, void *arg, size_t payload_sz,
-             origin d_host, node_t *node);
+             origin d_host, origin host);
 
 int reply_rpc(int s_fd, METHOD method, void *payload, size_t payload_sz,
               origin d_host, char correlation_id[CORRELATAION_ID_SIZE],

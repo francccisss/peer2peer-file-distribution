@@ -10,7 +10,7 @@
 #include <sys/socket.h>
 
 int call_rpc(int s_fd, METHOD method, void *payload, size_t payload_sz,
-             origin send_to, node_t *node) {
+             origin send_to, origin host) {
 
   call_body c_body = {
       .method = htons(method),
@@ -22,9 +22,9 @@ int call_rpc(int s_fd, METHOD method, void *payload, size_t payload_sz,
       .correlation_id = "random value",
       .msg_type = htons(CALL),
       .body.cbody = c_body,
-      .origin.port = htons(node->port),
+      .origin.port = htons(host.port),
   };
-  strcpy(msg.origin.ip, node->ip);
+  strcpy(msg.origin.ip, host.ip);
 
   struct sockaddr_in dest;
 
@@ -104,7 +104,12 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE], rpc_msg *rpc_msg,
   if (rpc_msg->msg_type == CALL) {
     printf("[RPC TYPE]: CALL\n");
     switch (rpc_msg->body.cbody.method) {
+
     case GET_PEERS: {
+
+      // In this case where GET_PEERS is called, the reply_to will contain the
+      // address of the node that initiated the recursive call
+
       printf("[METHOD CALL]: GET_PEERS \n");
       char *hash = (char *)rpc_msg->body.cbody.payload;
       printf("[TEST] incoming hash %s\n", hash);
@@ -156,14 +161,10 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE], rpc_msg *rpc_msg,
       }
 
       if (peer_bucket_buf->len == 0 && sorted_neighbors->len > 0) {
-        // go to current nodes neighbors and send get peers
-        // need to handle this somehow to make i recursive after hitting the
-        // base cases
-        get_peers(s_fd, node, sorted_neighbors, file_hash);
+        get_peers(s_fd, node, sorted_neighbors, file_hash, reply_to);
         printf("[NOTIF]: peer bucket is empty, search neighbors.\n");
         return 0;
       }
-
 
       printf("[TEST]: peer bucket len to be sent =%ld\n", peer_bucket_buf->len);
 
@@ -227,8 +228,10 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE], rpc_msg *rpc_msg,
 
       // first check if there are peers with the payload, the first byte of the
       // payload in GET PEERS will always be the length of the peer array
-      // if (len == 0) {
-      // };
+      if (len == 0) {
+        printf("[NOTIF]: returned with 0 peers in the bucket");
+        return 0;
+      };
 
       memcpy(&p_buf, rpc_msg->body.rbody.payload + 1, sizeof(peer_t) * len);
 

@@ -10,20 +10,23 @@
 
 void join_peers(int s_fd, node_t *node, char info_hash[ID_SIZE]) {
   peer_bucket_t *bucket_buf = malloc(sizeof(peer_bucket_t));
-  get_peer(&(node->peer_table), info_hash, &bucket_buf);
+  get_peer_bucket(&(node->peer_table), info_hash, &bucket_buf);
 
+  origin host = {.port = node->port};
+  strcpy(host.ip, node->ip);
   for (int i = 0; i < bucket_buf->len; i++) {
     peer_t cur_peer = (*bucket_buf->data)[i];
     printf("[TEST CASTED BUF]: ip=%s, port=%d\n", cur_peer.ip, cur_peer.port);
     origin destination = {.port = cur_peer.port};
     strcpy(destination.ip, cur_peer.ip);
-    call_rpc(s_fd, JOIN, NULL, 0, destination, node);
+
+    call_rpc(s_fd, JOIN, NULL, 0, destination, host);
   };
   free(bucket_buf);
 }
 
 void get_peers(int s_fd, node_t *node, node_array *sorted_neighbors,
-               char info_hash[ID_SIZE]) {
+               char info_hash[ID_SIZE], origin abs_address) {
   for (int i = 0; i < sorted_neighbors->len; i++) {
 
     node_t n = (*sorted_neighbors->data)[i];
@@ -32,7 +35,7 @@ void get_peers(int s_fd, node_t *node, node_array *sorted_neighbors,
     };
     strcpy(d_host.ip, n.ip);
 
-    int rs = call_rpc(s_fd, GET_PEERS, info_hash, ID_SIZE, d_host, node);
+    int rs = call_rpc(s_fd, GET_PEERS, info_hash, ID_SIZE, d_host, abs_address);
 
     if (rs < 0) {
       printf("[WARN]: unable to initiate GET_PEERS call with distance=%d\n",

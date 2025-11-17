@@ -26,6 +26,11 @@ typedef struct {
   node_t (*data)[INITIAL_CAP];
 } node_array;
 
+typedef struct {
+  uint16_t port;
+  char ip[INET_ADDRSTRLEN];
+} origin;
+
 void bootstrap_neigbors(node_array *src, size_t n_count, node_array *dst);
 
 /*
@@ -46,39 +51,26 @@ void compare_hash(node_array *neighbors, size_t n_count,
 
 void XORdistance(char info_hash[ID_SIZE], node_t *node);
 
-/*
- * responsible for connecting to the neigbors that are within close proximity
- * and recursively calls compare_hash and itself until a base case is reached
- *
- *  bootstrap node -> compare_hash() -> get_peers()
- *
- *  after bootstrapping, compare_hash() is called to grab closest neighbors
- * which then get_peers is called to check if any of the neighboring nodes has
- * an entry for the current info_hash, this is used for propagating searches
- *
- *  if it does exist then only a subset of those neighbors can stop propagating
- * and return the peers whilst the others can keep searching.
- *
- *  if it does not exist, then compare_hash() is called again which then
- *  propagates the search to its neighboring nodes,and checks its node's entry
- * table if the info_hash exists
- *
- * eg:
- *  peer_bucket_t *peer_bucket_buf;
- *  get(table, info_hash,&peer_bucket_buf);
- *  if (peer_bucket_buf != NULL ) {
- *     return_peers(peer_bucket_buf)
- *  }
- *  else{
- *     compare_hash(&neighbors_ptr, info_hash);
- *     get_peers(&neighbors_ptr, info_hash);
- *   }
- *
- * on success, store the peers within the node's peer_table, using the
- * associated info_hash as the key to the bucket of peers
- */
+// calling get_peers on behalf of the initial caller:
+// - pass around the ip and port of the original caller
+// - make recursive call, handle the return of the results when it
+// reaches a base case but need to modify the REPLY section to define
+// what it should do, but then we also need every call or reply to carry
+// some specific metadata specifically for GET_PEERS, eg: the callee
+// node should know if wether or not if it should store the peers or
+// reply back to its caller with the results as the payload, which would
+// incur multiple recursive calls if it is empty which makes it a waste
+// so passing the `absolute address` or address of the intitial caller 
+// would make things much more faster since every node would have a
+// direct contact instead of backtracking and making things more
+// complicated.
+// flow: initial call to get_peers, the original node wil pass its own
+// port and address as the abs_address, node1 -> neighbor1 receives the
+// GET_PEER request from node1, checks its entry and if it doesn't exist
+// it calls to get_peers, passing the reply_to which is the caller's
+// address instead of its own to the its own neighbor
 void get_peers(int s_fd, node_t *node, node_array *sorted_neigbors,
-               char info_hash[ID_SIZE]);
+               char info_hash[ID_SIZE], origin abs_address);
 void join_peers(int s_fd, node_t *node, char info_hash[ID_SIZE]);
 
 node_array *new_node_array();
