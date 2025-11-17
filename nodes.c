@@ -1,6 +1,5 @@
 #include "nodes.h"
 #include "remote_procedure.h"
-
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -75,12 +74,12 @@ node_array *new_node_array() {
   node_array *dyn_arr = malloc(sizeof(node_array));
   if (dyn_arr == NULL)
     return NULL;
-  node_t(*arr)[MAX_NEIGHBORS] = malloc(sizeof(node_t) * MAX_NEIGHBORS);
+  node_t(*arr)[INITIAL_CAP] = malloc(sizeof(node_t) * INITIAL_CAP);
   if (arr == NULL)
     return NULL;
   dyn_arr->data = arr;
   dyn_arr->len = 0;
-  dyn_arr->cap = MAX_NEIGHBORS;
+  dyn_arr->cap = INITIAL_CAP;
   return dyn_arr;
 };
 

@@ -10,14 +10,35 @@
 #define CORRELATAION_ID_SIZE 16
 
 /*
- * method is read by the receiver, to issue the appropriate routine to
+ * Method is read by the receiver, to issue the appropriate routine to
  * execute based on the call type of the sender.
  *
- * each host/node will have lookup table or a call table where it processes the
+ * Each host/node will have lookup table or a call table where it processes the
  * datagram from a host, extracts the method and uses that as an entry
- * to the corresponding routine pointer in that table
+ * to the corresponding routine pointer in that table.
+ *
+ *
+ * The recv_rpc will demultiplex incoming udp datagrams, checks if the MSG_TYPE
+ * is either REPLY or CALL.
+ *
+ * Different payloads that is received by both call and reply rpc routines are
+ * as follows:
+ *
+ * GET_PEERS from the caller's perspective only needs to pass the hash info of
+ * the file as an argument in *arg parameter. From the reply's perspective, the
+ * payload consists of 1 byte of the peer array length and the array of peers of
+ * type peer_t.
+ *
+ * When JOIN METHOD is used by the caller, the caller does not need to pass in
+ * any arguments in *arg since the only thing the it needs to do is go through
+ * each peer under the same hash, and sends a join call, the `origin` field of the
+ * rpc_message already contains sufficient data for the receiver to append it as
+ * a new peer within its own peer_table. When the receiver accepts the join, it replies back
+ * a MSG_STATUS as OK with a payload of string that describes the event.
  *
  */
+
+// set of methods for distinguishing method calls
 typedef enum {
   GET_PEERS,
   JOIN,
@@ -29,6 +50,11 @@ typedef enum {
   ERR = -1,
   OK,
 } MSG_STATUS;
+
+typedef enum {
+  REPLY,
+  CALL,
+} MSG_TYPE;
 
 typedef struct {
   uint8_t payload[MAX_PAYLOAD_SIZE];
@@ -54,11 +80,6 @@ typedef struct {
   MSG_STATUS status;
   uint8_t payload[MAX_PAYLOAD_SIZE];
 } reply_body;
-
-typedef enum {
-  REPLY,
-  CALL,
-} MSG_TYPE;
 
 typedef struct {
   uint16_t port;

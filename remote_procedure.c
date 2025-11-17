@@ -138,7 +138,7 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE], rpc_msg *rpc_msg,
       memcpy(buffer + 1, peer_bucket_buf->data,
              sizeof(peer_t) * peer_bucket_buf->len);
 
-      peer_t p_buf[MAX_PEERS];
+      peer_t p_buf[MAX_PEER_BUCKETS];
       memcpy(&p_buf, buffer + 1, sizeof(peer_t) * peer_bucket_buf->len);
 
       printf("[TEST CASTED BUF]: ip=%s, port=%d\n", p_buf[0].ip, p_buf[0].port);
@@ -148,6 +148,14 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE], rpc_msg *rpc_msg,
                 rpc_msg->correlation_id, OK);
       return 0;
     }
+
+    case JOIN: {
+
+
+
+      break;
+    }
+
     default:
       printf("no existing call type");
       return 0;
@@ -162,29 +170,18 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE], rpc_msg *rpc_msg,
       if (rpc_msg->body.rbody.status != OK) {
         printf("Unable to retrieve peers from nodes\n");
         return -1;
-      }
+      };
 
-      peer_t p_buf[MAX_PEERS];
+      peer_t p_buf[MAX_PEER_BUCKETS];
       uint8_t len = rpc_msg->body.rbody.payload[0];
 
       memcpy(&p_buf, rpc_msg->body.rbody.payload + 1, sizeof(peer_t) * len);
 
       for (int i = 0; i < len; i++) {
-
         set_peer(&node->peer_table, file_hash, p_buf[i]);
-      }
-
-      peer_bucket_t *bucket_buf;
-      get_peer(&node->peer_table, file_hash, &bucket_buf);
-
-      for (int i = 0; i < bucket_buf->len; i++) {
-
-        printf("[TEST BUCKET BUF]: len=%ld ip=%s, port=%d\n",
-               bucket_buf->len, (*bucket_buf->data)[i].ip,
-               (*bucket_buf->data)[i].port);
-      }
-
+      };
       break;
+    case JOIN:
     default:
       break;
     };

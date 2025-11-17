@@ -6,7 +6,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#define MAX_NEIGHBORS 20
 #define PROXIMITY_THRESHOLD 300 // any XOR metric less than or equal to 300
 #define ID_SIZE 36
 
@@ -15,7 +14,7 @@ typedef struct {
   char ip[INET_ADDRSTRLEN];
   uint16_t port;
   uint32_t distance;
-  peer_bucket_t *peer_table[MAX_PEERS];
+  peer_bucket_t *peer_table[MAX_PEER_BUCKETS];
 } node_t;
 
 // used as neighbors of the current node
@@ -24,7 +23,7 @@ typedef struct {
   uint32_t key;
   size_t cap;
   size_t len; // always access last element at len-1 because of 0 indexing
-  node_t (*data)[MAX_NEIGHBORS];
+  node_t (*data)[INITIAL_CAP];
 } node_array;
 
 void bootstrap_neigbors(node_array *src, size_t n_count, node_array *dst);

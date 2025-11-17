@@ -8,9 +8,9 @@
 
 // requires a table pointer to an array of pointers of type peer
 // eg: init(node.peer_table);  to initialize the node peer_table
-void init_peer_table(peer_bucket_t *(*unint_table)[MAX_PEERS]) {
+void init_peer_table(peer_bucket_t *(*unint_table)[MAX_PEER_BUCKETS]) {
   // Initializing node's peer table
-  for (int i = 0; i < MAX_PEERS; ++i) {
+  for (int i = 0; i < MAX_PEER_BUCKETS; ++i) {
     (*unint_table)[i] = new_peer_array();
   };
 };
@@ -24,12 +24,12 @@ uint32_t hash(const char *input) {
   }
 
   printf("hash value=%d\n", hash);
-  printf("hash mod value=%d\n", hash % MAX_PEERS);
+  printf("hash mod value=%d\n", hash % MAX_PEER_BUCKETS);
 
-  return hash % MAX_PEERS;
+  return hash % MAX_PEER_BUCKETS;
 }
 
-void set_peer(peer_bucket_t *(*table)[MAX_PEERS], const char *key,
+void set_peer(peer_bucket_t *(*table)[MAX_PEER_BUCKETS], const char *key,
               const peer_t data) {
 
   const uint32_t hash_key = hash(key);
@@ -44,7 +44,7 @@ void set_peer(peer_bucket_t *(*table)[MAX_PEERS], const char *key,
       return;
     }
     size_t index = hash_key + 1;
-    while (index < MAX_PEERS) {
+    while (index < MAX_PEER_BUCKETS) {
       // find one that is not occupied
       if ((*table)[index]->len == 0) {
         (*table)[index]->key = index;
@@ -68,7 +68,7 @@ void set_peer(peer_bucket_t *(*table)[MAX_PEERS], const char *key,
 /// This is bad, because the insertion in this hashmap, where 2 keys might
 /// collide which results into a linear probing, so insertion time == retrieval
 /// time as insertion increases linearly
-void get_peer(peer_bucket_t *(*table)[MAX_PEERS], const char *key,
+void get_peer(peer_bucket_t *(*table)[MAX_PEER_BUCKETS], const char *key,
               peer_bucket_t **peer_bucket_buf) {
   const uint32_t hash_key = hash(key);
   uint32_t current_key = (*table)[hash_key]->key;
@@ -78,9 +78,9 @@ void get_peer(peer_bucket_t *(*table)[MAX_PEERS], const char *key,
       return;
     }
     current_key++;
-  } while (current_key < MAX_PEERS);
+  } while (current_key < MAX_PEER_BUCKETS);
 
-  // (current_key...MAX_PEERS-1) yikes
+  // (current_key...MAX_PEER_BUCKETS-1) yikes
   printf("[INFO]: peer_bucket does not exist");
 }
 

@@ -1,12 +1,13 @@
 #ifndef PEERS
 #define PEERS
 
+#include <netinet/in.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #define HASH_OFFSET 2166136261u
 #define PRIME 16777619u
-#define MAX_PEERS 10
+#define MAX_PEER_BUCKETS 10
 #define INITIAL_CAP 8
 
 // determines the current state of the peer
@@ -19,7 +20,7 @@ typedef enum {
 } PEER_STATE;
 
 typedef struct {
-  char ip[15];
+  char ip[INET_ADDRSTRLEN];
   uint16_t port;
   char job_id[16]; // determine what it is doing currently
   PEER_STATE state;
@@ -38,9 +39,10 @@ void leech();
 void seed();
 void ping();
 
-void init_peer_table(peer_bucket_t *(*unint_table)[MAX_PEERS]);
-void set_peer(peer_bucket_t *(*table)[MAX_PEERS], const char *key, peer_t data);
-void get_peer(peer_bucket_t *(*table)[MAX_PEERS], const char *key,
+void init_peer_table(peer_bucket_t *(*unint_table)[MAX_PEER_BUCKETS]);
+void set_peer(peer_bucket_t *(*table)[MAX_PEER_BUCKETS], const char *key,
+              peer_t data);
+void get_peer(peer_bucket_t *(*table)[MAX_PEER_BUCKETS], const char *key,
               peer_bucket_t **peer_bucket_buf);
 uint32_t hash(const char *input);
 
