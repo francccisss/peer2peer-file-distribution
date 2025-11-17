@@ -1,3 +1,5 @@
 .idea/
 main
 tmp/
+test/main
+test/client_test
