@@ -67,20 +67,20 @@ int main() {
   init_peer_table(&node.peer_table);
 
   set_peer(&node.peer_table, file.file_hash,
-           (peer_t){.ip = "some ip address",
-                    .port = 42069,
-                    .job_id = "job?",
+           (peer_t){.ip = "localhost",
+                    .port = 3000,
+                    .job_id = "THiS NODE?",
                     .state = PASSIVE_ST});
 
   set_peer(&node.peer_table, file.file_hash,
-           (peer_t){.ip = "that ip address",
-                    .port = 12345,
+           (peer_t){.ip = "localhost",
+                    .port = 3345,
                     .job_id = "job!!",
                     .state = LEECH_ST});
 
   set_peer(&node.peer_table, file.file_hash,
-           (peer_t){.ip = "what ip address",
-                    .port = 52598,
+           (peer_t){.ip = "localhost",
+                    .port = 5598,
                     .job_id = "job?!?1",
                     .state = SEED_ST});
 
@@ -95,7 +95,10 @@ int main() {
       exit(-1);
     }
 
-    recv_rpc(sfd, &node, file.file_hash, &msg_buffer, neighboring_nodes);
+    int ri = recv_rpc(sfd, &node, file.file_hash, &msg_buffer, neighboring_nodes);
+		if (ri < 0){
+			printf("[ERROR RECV RPC]: Something went wrong");
+		}
   }
   return 0;
 }

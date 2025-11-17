@@ -87,7 +87,8 @@ int reply_rpc(int s_fd, METHOD method, void *payload, size_t payload_sz,
 int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE], rpc_msg *rpc_msg,
              node_array *sorted_neighbors) {
 
-  // grab the port and address of the sender defined by call_rpc
+  // grab the port and address of the caller that initiated the request defined
+  // by call_rpc
   origin reply_to = {.port = ntohs(rpc_msg->origin.port)};
 
   strcpy(reply_to.ip, rpc_msg->origin.ip);
@@ -115,17 +116,17 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE], rpc_msg *rpc_msg,
         break;
       }
 
-      peer_bucket_t *peer_bucket_buf = malloc(sizeof(peer_t));
+      peer_bucket_t *peer_bucket_buf = malloc(sizeof(peer_bucket_t));
       if (peer_bucket_buf == NULL) {
         perror("[ERROR]: malloc");
-        exit(1);
+					return -1;
       };
 
       get_peer(&node->peer_table, hash, &peer_bucket_buf);
       if (peer_bucket_buf == NULL) {
         printf("[TEST]: table does not exist call get peers\n");
         get_peers(s_fd, node, sorted_neighbors, hash);
-        break;
+        return 0;
       }
 
       printf("[TEST]: peer bucket len to be sent =%ld\n", peer_bucket_buf->len);
@@ -146,13 +147,26 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE], rpc_msg *rpc_msg,
       reply_rpc(s_fd, rpc_msg->body.cbody.method, buffer,
                 sizeof(peer_t) * peer_bucket_buf->len + 1, reply_to,
                 rpc_msg->correlation_id, OK);
-      return 0;
+      free(peer_bucket_buf);
+      break;
     }
 
+    break;
     case JOIN: {
+      // when a node/peer receives a JOIN call from caller
+      peer_t new_peer = {
+          .port = reply_to.port,
+          .state = PASSIVE_ST,
+      };
+      strcpy(new_peer.ip, reply_to.ip);
+      int r =
+          reply_rpc(s_fd, JOIN, NULL, 0, reply_to, rpc_msg->correlation_id, OK);
 
-
-
+      if (r < 0) {
+        printf("[ERROR REPLY]: Unable to send UDP datagram to "
+               "destination\nHost unreachable.");
+        return 1;
+      }
       break;
     }
 

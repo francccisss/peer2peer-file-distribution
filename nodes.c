@@ -8,8 +8,22 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+void join_peers(int s_fd, node_t *node, char info_hash[ID_SIZE]) {
+  peer_bucket_t *bucket_buf = malloc(sizeof(peer_bucket_t));
+  get_peer(&(node->peer_table), info_hash, &bucket_buf);
+
+  for (int i = 0; i < bucket_buf->len; i++) {
+    peer_t cur_peer = (*bucket_buf->data)[i];
+    printf("[TEST CASTED BUF]: ip=%s, port=%d\n", cur_peer.ip, cur_peer.port);
+    origin destination = {.port = cur_peer.port};
+    strcpy(destination.ip, cur_peer.ip);
+    call_rpc(s_fd, JOIN, NULL, 0, destination, node);
+  };
+  free(bucket_buf);
+}
+
 void get_peers(int s_fd, node_t *node, node_array *sorted_neighbors,
-               char hash_info[ID_SIZE]) {
+               char info_hash[ID_SIZE]) {
   for (int i = 0; i < sorted_neighbors->len; i++) {
 
     node_t n = (*sorted_neighbors->data)[i];
@@ -18,7 +32,7 @@ void get_peers(int s_fd, node_t *node, node_array *sorted_neighbors,
     };
     strcpy(d_host.ip, n.ip);
 
-    int rs = call_rpc(s_fd, GET_PEERS, hash_info, ID_SIZE, d_host, node);
+    int rs = call_rpc(s_fd, GET_PEERS, info_hash, ID_SIZE, d_host, node);
 
     if (rs < 0) {
       printf("[WARN]: unable to initiate GET_PEERS call with distance=%d\n",
@@ -40,19 +54,19 @@ void bootstrap_neigbors(node_array *src, size_t n_count, node_array *dst) {
 //
 // using uuid for now cause why not :D
 
-void XORdistance(char hash_info[ID_SIZE], node_t *node) {
+void XORdistance(char info_hash[ID_SIZE], node_t *node) {
 
-  for (int i = 0; i < strlen(hash_info); i++) {
-    node->distance += hash_info[i] ^ node->id[i];
+  for (int i = 0; i < strlen(info_hash); i++) {
+    node->distance += info_hash[i] ^ node->id[i];
   };
 }
 
 void compare_hash(node_array *neighbors, size_t n_count,
-                  char hash_info[ID_SIZE]) {
+                  char info_hash[ID_SIZE]) {
   // sorts neighbors by closest
 
   for (int i = 0; i < n_count; i++) {
-    XORdistance(hash_info, &(*neighbors->data)[i]);
+    XORdistance(info_hash, &(*neighbors->data)[i]);
   }
 
   int i = 0;

@@ -42,9 +42,9 @@ void bootstrap_neigbors(node_array *src, size_t n_count, node_array *dst);
  */
 
 void compare_hash(node_array *neighbors, size_t n_count,
-                  char hash_info[ID_SIZE]);
+                  char info_hash[ID_SIZE]);
 
-void XORdistance(char hash_info[ID_SIZE], node_t *node);
+void XORdistance(char info_hash[ID_SIZE], node_t *node);
 
 /*
  * responsible for connecting to the neigbors that are within close proximity
@@ -75,10 +75,11 @@ void XORdistance(char hash_info[ID_SIZE], node_t *node);
  *   }
  *
  * on success, store the peers within the node's peer_table, using the
- * associated hash_info as the key to the bucket of peers
+ * associated info_hash as the key to the bucket of peers
  */
-void get_peers(int s_fd, node_t *nodes, node_array *sorted_neigbors,
+void get_peers(int s_fd, node_t *node, node_array *sorted_neigbors,
                char info_hash[ID_SIZE]);
+void join_peers(int s_fd, node_t *node, char info_hash[ID_SIZE]);
 
 node_array *new_node_array();
 void resize_node_array(node_array *d_arr);
