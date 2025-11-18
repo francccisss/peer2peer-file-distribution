@@ -116,12 +116,15 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE], rpc_msg *rpc_msg,
 
       if (strcmp(hash, "") < 0) {
         printf("[ERROR]: hash is empty");
-        reply_rpc(s_fd, rpc_msg->body.cbody.method, NULL, 0, reply_to,
+        uint8_t buffer[1];
+        buffer[0] = 0;
+        // should i read the payload? or add a message to the struct
+        reply_rpc(s_fd, rpc_msg->body.cbody.method, buffer, 1, reply_to,
                   rpc_msg->correlation_id, ERR);
-        break;
+        return 0;
       }
 
-      peer_bucket_t *peer_bucket_buf = calloc(0, sizeof(peer_bucket_t));
+      peer_bucket_t *peer_bucket_buf = malloc(sizeof(peer_bucket_t));
       if (peer_bucket_buf == NULL) {
         perror("[ERROR]: malloc");
         return -1;
@@ -176,19 +179,12 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE], rpc_msg *rpc_msg,
       memcpy(buffer + 1, peer_bucket_buf->data,
              sizeof(peer_t) * peer_bucket_buf->len);
 
-      peer_t p_buf[MAX_PEER_BUCKETS];
-      memcpy(&p_buf, buffer + 1, sizeof(peer_t) * peer_bucket_buf->len);
-
-      printf("[TEST CASTED BUF]: ip=%s, port=%d\n", p_buf[0].ip, p_buf[0].port);
-
       reply_rpc(s_fd, rpc_msg->body.cbody.method, buffer,
                 sizeof(peer_t) * peer_bucket_buf->len + 1, reply_to,
                 rpc_msg->correlation_id, OK);
       free(peer_bucket_buf);
-      break;
+      return 0;
     }
-
-    break;
     case JOIN: {
       // when a node/peer receives a JOIN call from caller
       peer_t new_peer = {
@@ -204,6 +200,7 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE], rpc_msg *rpc_msg,
                "destination\nHost unreachable.");
         return 1;
       }
+      set_peer(&node->peer_table, file_hash, new_peer);
       break;
     }
 
@@ -228,8 +225,9 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE], rpc_msg *rpc_msg,
 
       // first check if there are peers with the payload, the first byte of the
       // payload in GET PEERS will always be the length of the peer array
+      printf("[NOTIF]: peer array length=%d\n", len);
       if (len == 0) {
-        printf("[NOTIF]: returned with 0 peers in the bucket");
+        printf("[NOTIF]: returned with 0 peers in the bucket\n");
         return 0;
       };
 
@@ -237,6 +235,11 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE], rpc_msg *rpc_msg,
 
       for (int i = 0; i < len; i++) {
         set_peer(&node->peer_table, file_hash, p_buf[i]);
+      };
+
+      for (int i = 0; i < len; i++) {
+        printf("[TEST CASTED BUF]: ip=%s, port=%d\n", p_buf[i].ip,
+               p_buf[i].port);
       };
       break;
     case JOIN:
