@@ -16,10 +16,9 @@ run:./bin/main
 
 test_build_gdb: ./test/rpc_test.c
 	echo "Running RPC"
-	gcc -Wall -g ./test/rpc_test.c peers.c remote_procedure.c   nodes.c -o ./test/test
-	echo "Compiling with warning args and gdb"
-	gdb ./test/test
-
+	gcc -Wall -g ./test/rpc_test.c peers.c remote_procedure.c   nodes.c -o ./test/main
+	echo "Compiling with warning args"
+	gdb ./test/main
 
 test_rpc: ./test/rpc_test.c
 	echo "Running RPC"

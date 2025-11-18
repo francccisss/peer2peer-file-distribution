@@ -60,15 +60,22 @@ void XORdistance(char info_hash[ID_SIZE], node_t *node);
 // node should know if wether or not if it should store the peers or
 // reply back to its caller with the results as the payload, which would
 // incur multiple recursive calls if it is empty which makes it a waste
-// so passing the `absolute address` or address of the intitial caller 
+// so passing the `absolute address` or address of the intitial caller
 // would make things much more faster since every node would have a
 // direct contact instead of backtracking and making things more
 // complicated.
 // flow: initial call to get_peers, the original node wil pass its own
 // port and address as the abs_address, node1 -> neighbor1 receives the
 // GET_PEER request from node1, checks its entry and if it doesn't exist
-// it calls to get_peers, passing the reply_to which is the caller's
+// it calls to get_peers again but passes the reply_to which is the caller's
 // address instead of its own to the its own neighbor
+//
+// TODO: start a timer for the initiator (pseudo reliable transmission protocol)
+// - fixed time for when datagram leaves the host
+// - at timeout, resend datagram since the receiver will just throw away the request if
+// - it fails internally.
+//
+
 void get_peers(int s_fd, node_t *node, node_array *sorted_neigbors,
                char info_hash[ID_SIZE], origin abs_address);
 void join_peers(int s_fd, node_t *node, char info_hash[ID_SIZE]);
