@@ -35,25 +35,31 @@ void set_peer(peer_bucket_t *(*table)[MAX_PEER_BUCKETS], const char *key,
   const uint32_t hash_key = hash(key);
   // current peer_bucket is occupied given by hash
   printf("[TEST]: peer_bucket key value: %d\n", (*table)[hash_key]->key);
-  // // just because it's not equal doesn't mean it does not exist
-
-  /// does a peer_bucket with this hash_key exist
+  // the `active` property for every bucket specifies if the input hash key is
+  // equal to the entry of specific bucket, if "this string" and "that string"
+  // returns the same hash key, but "this string" currently occupies the bucket,
+  // then the we need to push the peer data into a different bucket using linear
+  // probing
   if ((*table)[hash_key]->active) {
     if ((*table)[hash_key]->key == hash_key) {
       push_peer((*table)[hash_key], data);
       return;
-    }
+    };
     size_t index = hash_key + 1;
+    // find one that is not occupied by traversing the table in a linear fashion
+    // its considered not occupied if it is `active` is false;
     while (index < MAX_PEER_BUCKETS) {
-      // find one that is not occupied
-      if ((*table)[index]->len == 0) {
+      if ((*table)[index]->len == 0 && (*table)[index]->active == false) {
         (*table)[index]->key = index;
         push_peer((*table)[index], data);
         return;
       };
       index++;
+      printf("[ERROR] no space to set peer bucket within peer table");
+      return;
     };
-  }
+  };
+  // create a new peer bucket
   (*table)[hash_key]->key = hash_key;
   (*table)[hash_key]->active = true;
   push_peer((*table)[hash_key], data);
@@ -68,7 +74,7 @@ void set_peer(peer_bucket_t *(*table)[MAX_PEER_BUCKETS], const char *key,
  */
 
 void get_peer_bucket(peer_bucket_t *(*table)[MAX_PEER_BUCKETS], const char *key,
-              peer_bucket_t **peer_bucket_buf) {
+                     peer_bucket_t **peer_bucket_buf) {
   const uint32_t hash_key = hash(key);
   uint32_t current_key = (*table)[hash_key]->key;
   do {
