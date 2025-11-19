@@ -72,13 +72,14 @@ void XORdistance(char info_hash[ID_SIZE], node_t *node);
 //
 // TODO: start a timer for the initiator (pseudo reliable transmission protocol)
 // - fixed time for when datagram leaves the host
-// - at timeout, resend datagram since the receiver will just throw away the request if
+// - at timeout, resend datagram since the receiver will just throw away the
+// request if
 // - it fails internally.
 //
 
-void get_peers(int s_fd, node_t *node, node_array *sorted_neigbors,
+int get_peers(int s_fd, node_t *node, node_array *sorted_neigbors,
                char info_hash[ID_SIZE], origin abs_address);
-void join_peers(int s_fd, node_t *node, char info_hash[ID_SIZE]);
+int join_peers(int s_fd, node_t *node, char info_hash[ID_SIZE]);
 
 node_array *new_node_array();
 void resize_node_array(node_array *d_arr);

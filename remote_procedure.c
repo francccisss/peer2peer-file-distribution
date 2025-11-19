@@ -3,11 +3,13 @@
 #include "peers.h"
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
+#define K_PEERS 8
 
 int call_rpc(int s_fd, METHOD method, void *payload, size_t payload_sz,
              origin send_to, origin host) {
@@ -110,6 +112,15 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE], rpc_msg *rpc_msg,
       // In this case where GET_PEERS is called, the reply_to will contain the
       // address of the node that initiated the recursive call
 
+      // since the get_peers goes through each neighbors, and sends an rpc call,
+      // // then each neighbors can independently send their own peers, but the
+      // initiator does not know how many peers to wait for until it can call
+      // join_peers, the stop wait mechanism would work here, first send rpc to
+      // the first closest neighbor, else if it does not return anything at the
+      // alloted time, we move on to the next one until a list peers is returned
+      // to the initiator, or when the number of peers < k peers then we do the
+      // same until peers.len == k
+
       printf("[METHOD CALL]: GET_PEERS \n");
       char *hash = (char *)rpc_msg->body.cbody.payload;
       printf("[TEST] incoming hash %s\n", hash);
@@ -142,9 +153,9 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE], rpc_msg *rpc_msg,
                           rpc_msg->correlation_id, OK);
         if (r < 0) {
           printf("[ERROR]: Unable to send datagram back to caller\n");
-          return -1;
         }
-        return 0;
+        free(peer_bucket_buf);
+        return r;
       }
 
       if (sorted_neighbors->len == 0 && peer_bucket_buf->len == 0) {
@@ -157,10 +168,9 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE], rpc_msg *rpc_msg,
                           rpc_msg->correlation_id, OK);
         if (r < 0) {
           printf("[ERROR]: Unable to send datagram back to caller\n");
-          return -1;
         }
-        printf("[NOTIF]: exhausted neighbors, returning.\n");
-        return 0;
+        free(peer_bucket_buf);
+        return r;
       }
 
       if (peer_bucket_buf->len == 0 && sorted_neighbors->len > 0) {
@@ -212,7 +222,7 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE], rpc_msg *rpc_msg,
 
     printf("[RPC TYPE]: REPLY\n");
     switch (rpc_msg->body.rbody.method) {
-    case GET_PEERS:
+    case GET_PEERS: {
 
       // make this into a reusable function that takes in an input
       if (rpc_msg->body.rbody.status != OK) {
@@ -231,18 +241,52 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE], rpc_msg *rpc_msg,
         return 0;
       };
 
-      memcpy(&p_buf, rpc_msg->body.rbody.payload + 1, sizeof(peer_t) * len);
+      // get_peers call will propagate request to all neighbors starting from
+      // the closest. the caller will wait for independent incoming peer arrays
+      // from unknown nodes that responds to the request. the node will only
+      // join if atleast len == PEERS
 
+      bool timeout = true; // need to implement stop wait mechanism
+      if (len == K_PEERS || timeout) {
+        join_peers(s_fd, node, file_hash);
+        return 0;
+      }
+
+      memcpy(&p_buf, rpc_msg->body.rbody.payload + 1, sizeof(peer_t) * len);
       for (int i = 0; i < len; i++) {
         set_peer(&node->peer_table, file_hash, p_buf[i]);
       };
-
       for (int i = 0; i < len; i++) {
         printf("[TEST CASTED BUF]: ip=%s, port=%d\n", p_buf[i].ip,
                p_buf[i].port);
       };
+      return 0;
+    };
+    case JOIN: {
+
+      // need to be smart about status,
+      // does the status describe that if the message was sent or not?
+      // or if it has been rejected by the receiving host?
+      // or it has been received, and has been accepted but an error occured
+      // that does not concern the sendiing host?
+
+      // OR using Reliable data transfer by implementing a timer mechanism that
+      // waits for a response from the receiver, if it has been received or not,
+      // so if not we resend after times_sent >= maximum_retries
+      // if exhausted then fail
+      //
+      // - using this method we dont need to keep states nor does the receiver
+      // need to let us know that the request was a fail the status can then
+      // only represent if it was reject by the host in based on the arguments
+      // passed by the sender, eg: wrong hash file, or hash file does not exist
+      // in the table of the receiver
+
+      if (rpc_msg->body.rbody.status != OK) {
+        printf("Unable to retrieve peers from nodes\n");
+        return -1;
+      };
       break;
-    case JOIN:
+    }
     default:
       break;
     };

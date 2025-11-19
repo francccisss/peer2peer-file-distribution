@@ -8,7 +8,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-void join_peers(int s_fd, node_t *node, char info_hash[ID_SIZE]) {
+int join_peers(int s_fd, node_t *node, char info_hash[ID_SIZE]) {
   peer_bucket_t *bucket_buf = malloc(sizeof(peer_bucket_t));
   get_peer_bucket(&(node->peer_table), info_hash, &bucket_buf);
 
@@ -23,26 +23,26 @@ void join_peers(int s_fd, node_t *node, char info_hash[ID_SIZE]) {
     call_rpc(s_fd, JOIN, NULL, 0, destination, host);
   };
   free(bucket_buf);
+  return 0;
 }
 
-void get_peers(int s_fd, node_t *node, node_array *sorted_neighbors,
-               char info_hash[ID_SIZE], origin abs_address) {
-  for (int i = 0; i < sorted_neighbors->len; i++) {
+int get_peers(int s_fd, node_t *node, node_array *sorted_neighbors,
+              char info_hash[ID_SIZE], origin abs_address) {
 
-    node_t n = (*sorted_neighbors->data)[i];
-    origin d_host = {
-        .port = n.port,
-    };
-    strcpy(d_host.ip, n.ip);
+  // sends the closest node
+  node_t n = (*sorted_neighbors->data)[0];
+  origin d_host = {
+      .port = n.port,
+  };
+  strcpy(d_host.ip, n.ip);
 
-    int rs = call_rpc(s_fd, GET_PEERS, info_hash, ID_SIZE, d_host, abs_address);
+  int rs = call_rpc(s_fd, GET_PEERS, info_hash, ID_SIZE, d_host, abs_address);
 
-    if (rs < 0) {
-      printf("[WARN]: unable to initiate GET_PEERS call with distance=%d\n",
-             n.distance);
-      continue;
-    };
-  }
+  if (rs < 0) {
+    printf("[WARN]: unable to initiate GET_PEERS call with distance=%d\n",
+           n.distance);
+  };
+  return rs;
 };
 
 void bootstrap_neigbors(node_array *src, size_t n_count, node_array *dst) {
