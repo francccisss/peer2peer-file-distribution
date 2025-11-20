@@ -64,7 +64,7 @@ int reply_rpc(int s_fd, METHOD method, void *payload, size_t payload_sz,
    * segment the payload else ip fragmentation since udp does not
    * automatically segment the size
    *
-   * if payload_sz > sizeof(rpc_msg)struct : exceeds maximum segment size
+   * if payload_sz > sizeof(msg_buffer)struct : exceeds maximum segment size
    */
 
   memcpy(&r_body.payload, payload, payload_sz);
@@ -86,26 +86,26 @@ int reply_rpc(int s_fd, METHOD method, void *payload, size_t payload_sz,
   return 0;
 };
 
-int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE], rpc_msg *rpc_msg,
-             node_array *sorted_neighbors) {
+int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
+             rpc_msg *msg_buffer, node_array *sorted_neighbors) {
 
   // grab the port and address of the caller that initiated the request defined
   // by call_rpc
-  origin reply_to = {.port = ntohs(rpc_msg->origin.port)};
+  origin reply_to = {.port = ntohs(msg_buffer->origin.port)};
 
-  strcpy(reply_to.ip, rpc_msg->origin.ip);
+  strcpy(reply_to.ip, msg_buffer->origin.ip);
 
   printf("[TEST NETWORK]: sender destination ip=%s, port=%d\n", reply_to.ip,
          reply_to.port);
 
-  rpc_msg->body.cbody.method = ntohs(rpc_msg->body.cbody.method);
-  rpc_msg->segment_count = ntohl(rpc_msg->segment_count);
-  rpc_msg->segment_number = ntohl(rpc_msg->segment_number);
-  rpc_msg->msg_type = ntohs(rpc_msg->msg_type);
+  msg_buffer->body.cbody.method = ntohs(msg_buffer->body.cbody.method);
+  msg_buffer->segment_count = ntohl(msg_buffer->segment_count);
+  msg_buffer->segment_number = ntohl(msg_buffer->segment_number);
+  msg_buffer->msg_type = ntohs(msg_buffer->msg_type);
 
-  if (rpc_msg->msg_type == CALL) {
+  if (msg_buffer->msg_type == CALL) {
     printf("[RPC TYPE]: CALL\n");
-    switch (rpc_msg->body.cbody.method) {
+    switch (msg_buffer->body.cbody.method) {
 
     case GET_PEERS: {
 
@@ -122,7 +122,7 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE], rpc_msg *rpc_msg,
       // same until peers.len == k
 
       printf("[METHOD CALL]: GET_PEERS \n");
-      char *hash = (char *)rpc_msg->body.cbody.payload;
+      char *hash = (char *)msg_buffer->body.cbody.payload;
       printf("[TEST] incoming hash %s\n", hash);
 
       if (strcmp(hash, "") < 0) {
@@ -130,8 +130,8 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE], rpc_msg *rpc_msg,
         uint8_t buffer[1];
         buffer[0] = 0;
         // should i read the payload? or add a message to the struct
-        reply_rpc(s_fd, rpc_msg->body.cbody.method, buffer, 1, reply_to,
-                  rpc_msg->correlation_id, ERR);
+        reply_rpc(s_fd, msg_buffer->body.cbody.method, buffer, 1, reply_to,
+                  msg_buffer->correlation_id, ERR);
         return 0;
       }
 
@@ -149,8 +149,8 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE], rpc_msg *rpc_msg,
         printf("[NOTIF]: no peer table entry\n");
         uint8_t buffer[1];
         buffer[0] = 0;
-        int r = reply_rpc(s_fd, rpc_msg->body.cbody.method, buffer, 1, reply_to,
-                          rpc_msg->correlation_id, OK);
+        int r = reply_rpc(s_fd, msg_buffer->body.cbody.method, buffer, 1,
+                          reply_to, msg_buffer->correlation_id, OK);
         if (r < 0) {
           printf("[ERROR]: Unable to send datagram back to caller\n");
         }
@@ -164,8 +164,8 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE], rpc_msg *rpc_msg,
         printf("[NOTIF]: no peer table entry\n");
         uint8_t buffer[1];
         buffer[0] = 0;
-        int r = reply_rpc(s_fd, rpc_msg->body.cbody.method, buffer, 1, reply_to,
-                          rpc_msg->correlation_id, OK);
+        int r = reply_rpc(s_fd, msg_buffer->body.cbody.method, buffer, 1,
+                          reply_to, msg_buffer->correlation_id, OK);
         if (r < 0) {
           printf("[ERROR]: Unable to send datagram back to caller\n");
         }
@@ -189,9 +189,9 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE], rpc_msg *rpc_msg,
       memcpy(buffer + 1, peer_bucket_buf->data,
              sizeof(peer_t) * peer_bucket_buf->len);
 
-      reply_rpc(s_fd, rpc_msg->body.cbody.method, buffer,
+      reply_rpc(s_fd, msg_buffer->body.cbody.method, buffer,
                 sizeof(peer_t) * peer_bucket_buf->len + 1, reply_to,
-                rpc_msg->correlation_id, OK);
+                msg_buffer->correlation_id, OK);
       free(peer_bucket_buf);
       return 0;
     }
@@ -202,8 +202,8 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE], rpc_msg *rpc_msg,
           .state = PASSIVE_ST,
       };
       strcpy(new_peer.ip, reply_to.ip);
-      int r =
-          reply_rpc(s_fd, JOIN, NULL, 0, reply_to, rpc_msg->correlation_id, OK);
+      int r = reply_rpc(s_fd, JOIN, NULL, 0, reply_to,
+                        msg_buffer->correlation_id, OK);
 
       if (r < 0) {
         printf("[ERROR REPLY]: Unable to send UDP datagram to "
@@ -221,21 +221,22 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE], rpc_msg *rpc_msg,
   } else {
 
     printf("[RPC TYPE]: REPLY\n");
-    switch (rpc_msg->body.rbody.method) {
+    switch (msg_buffer->body.rbody.method) {
     case GET_PEERS: {
 
       // make this into a reusable function that takes in an input
-      if (rpc_msg->body.rbody.status != OK) {
+      if (msg_buffer->body.rbody.status != OK) {
         printf("Unable to retrieve peers from nodes\n");
         return -1;
       };
 
       peer_t p_buf[MAX_PEER_BUCKETS];
-      uint8_t len = rpc_msg->body.rbody.payload[0];
+      uint8_t len = msg_buffer->body.rbody.payload[0];
 
       // first check if there are peers with the payload, the first byte of the
       // payload in GET PEERS will always be the length of the peer array
       printf("[NOTIF]: peer array length=%d\n", len);
+      // Guard to close the function when incoming peer array is empty
       if (len == 0) {
         printf("[NOTIF]: returned with 0 peers in the bucket\n");
         return 0;
@@ -247,12 +248,27 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE], rpc_msg *rpc_msg,
       // join if atleast len == PEERS
 
       bool timeout = true; // need to implement stop wait mechanism
-      if (len == K_PEERS || timeout) {
-        join_peers(s_fd, node, file_hash);
-        return 0;
-      }
+      peer_bucket_t *peer_bucket_buf = malloc(sizeof(peer_bucket_t));
+      if (peer_bucket_buf == NULL) {
+        perror("[ERROR] malloc");
+        return -1;
+      };
 
-      memcpy(&p_buf, rpc_msg->body.rbody.payload + 1, sizeof(peer_t) * len);
+      get_peer_bucket(&node->peer_table, file_hash, &peer_bucket_buf);
+
+      if (peer_bucket_buf == NULL) {
+        printf("[ERROR] empty bucket, could be an unintialized peer_table\n");
+        return -1;
+      };
+
+      // timeout would only work if this function is called again.
+      // eg: new datagram arrives -> is timedout?
+      // then that means we are hoping for a new rpc reply to get_peers
+      // before we can even call join_peers
+      // what if the last neighbor returned the peers < K_PEERS while timeout
+      // never occured? then join peers is never called
+
+      memcpy(&p_buf, msg_buffer->body.rbody.payload + 1, sizeof(peer_t) * len);
       for (int i = 0; i < len; i++) {
         set_peer(&node->peer_table, file_hash, p_buf[i]);
       };
@@ -260,6 +276,7 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE], rpc_msg *rpc_msg,
         printf("[TEST CASTED BUF]: ip=%s, port=%d\n", p_buf[i].ip,
                p_buf[i].port);
       };
+      free(peer_bucket_buf);
       return 0;
     };
     case JOIN: {
@@ -281,7 +298,7 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE], rpc_msg *rpc_msg,
       // passed by the sender, eg: wrong hash file, or hash file does not exist
       // in the table of the receiver
 
-      if (rpc_msg->body.rbody.status != OK) {
+      if (msg_buffer->body.rbody.status != OK) {
         printf("Unable to retrieve peers from nodes\n");
         return -1;
       };
