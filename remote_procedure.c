@@ -247,7 +247,6 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
       // from unknown nodes that responds to the request. the node will only
       // join if atleast len == PEERS
 
-      bool timeout = true; // need to implement stop wait mechanism
       peer_bucket_t *peer_bucket_buf = malloc(sizeof(peer_bucket_t));
       if (peer_bucket_buf == NULL) {
         perror("[ERROR] malloc");
@@ -264,7 +263,7 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
       // timeout would only work if this function is called again.
       // eg: new datagram arrives -> is timedout?
       // then that means we are hoping for a new rpc reply to get_peers
-      // before we can even call join_peers
+      // before we can even call join_peersask 
       // what if the last neighbor returned the peers < K_PEERS while timeout
       // never occured? then join peers is never called
 
