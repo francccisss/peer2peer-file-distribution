@@ -23,8 +23,6 @@ uint32_t hash(const char *input) {
     hash *= PRIME;
   }
 
-  printf("hash value=%d\n", hash);
-  printf("hash mod value=%d\n", hash % MAX_PEER_BUCKETS);
 
   return hash % MAX_PEER_BUCKETS;
 }

@@ -12,14 +12,15 @@ int join_peers(int s_fd, node_t *node, char info_hash[ID_SIZE]) {
   peer_bucket_t *bucket_buf = malloc(sizeof(peer_bucket_t));
   get_peer_bucket(&(node->peer_table), info_hash, &bucket_buf);
 
-	if(bucket_buf == NULL){
-		printf("[INFO]: bucket does not exist for hash=%s",info_hash);
-		return 0;
-	};
-	if(bucket_buf->len == 0){
-		printf("[INFO]: there are no peers for hash=%s",info_hash);
-		return 0;
-	};
+  if (bucket_buf == NULL) {
+    printf("[INFO]: bucket does not exist for hash=%s\n", info_hash);
+    return 0;
+  };
+  printf("[TEST LEN]: bucket_len=%ld\n", bucket_buf->len);
+  if (bucket_buf->len == 0) {
+    printf("[INFO]: there are no peers to join in hash=%s\n", info_hash);
+    return 0;
+  };
 
   origin host = {.port = node->port};
   strcpy(host.ip, node->ip);

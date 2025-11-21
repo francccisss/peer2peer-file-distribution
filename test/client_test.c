@@ -56,37 +56,41 @@ int main() {
 
   get_peers(s_fd, &node, neighboring_nodes, file.file_hash, absolute_address);
 
+  bool wait_peers = true;
   rpc_msg msg_buffer;
   fd_set rfd;
   struct timeval t;
   uint8_t max_time = 1;
 
   int retval;
-
   while (1) {
     FD_ZERO(&rfd);
-    FD_SET(0, &rfd);
+    FD_SET(s_fd, &rfd);
     t.tv_sec = max_time;
     t.tv_usec = 0;
     retval = select(s_fd + 1, &rfd, NULL, NULL, &t);
 
-    if (retval < 0) {
-      perror("[ERROR] select");
-      exit(retval);
-    };
-    if (retval == 0) {
-      printf("polling Timed out\n");
-			continue;
+    if (wait_peers) {
+      if (retval < 0) {
+        perror("[ERROR] select");
+        exit(retval);
+      };
+      if (retval == 0) {
+        printf("polling Timed out\n");
+        join_peers(s_fd, &node, file.file_hash);
+        wait_peers = false;
+        continue;
+      };
+
+      printf("request received\n");
     };
 
-    printf("request receid\n");
-
-    // int r = recvfrom(s_fd, &msg_buffer, sizeof(msg_buffer), 0, NULL, 0);
-    // if (r == -1) {
-    //   perror("[ERROR] Socket bind");
-    //   exit(-1);
-    // }
-    // recv_rpc(s_fd, &node, file.file_hash, &msg_buffer, neighboring_nodes);
+    int r = recvfrom(s_fd, &msg_buffer, sizeof(msg_buffer), 0, NULL, 0);
+    if (r == -1) {
+      perror("[ERROR] Socket bind");
+      exit(-1);
+    }
+    recv_rpc(s_fd, &node, file.file_hash, &msg_buffer, neighboring_nodes);
   }
 
   return 0;

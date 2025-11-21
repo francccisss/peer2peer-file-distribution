@@ -78,7 +78,7 @@ void XORdistance(char info_hash[ID_SIZE], node_t *node);
 //
 
 int get_peers(int s_fd, node_t *node, node_array *sorted_neigbors,
-               char info_hash[ID_SIZE], origin abs_address);
+              char info_hash[ID_SIZE], origin abs_address);
 int join_peers(int s_fd, node_t *node, char info_hash[ID_SIZE]);
 
 node_array *new_node_array();
