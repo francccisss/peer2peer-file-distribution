@@ -3,6 +3,7 @@
 
 #include "nodes.h"
 #include <netinet/in.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #define MAX_PAYLOAD_SIZE 1024
@@ -123,8 +124,9 @@ typedef struct {
  *
  *
  * d_host destination host :D
- * host for current host or the host that a node wants to reply back to which will be used by recv_rpc's reply_to parameter
- * 
+ * host for current host or the host that a node wants to reply back to which
+ * will be used by recv_rpc's reply_to parameter
+ *
  *
  */
 int call_rpc(int s_fd, METHOD method, void *arg, size_t payload_sz,
@@ -135,5 +137,5 @@ int reply_rpc(int s_fd, METHOD method, void *payload, size_t payload_sz,
               MSG_STATUS msg_status);
 
 int recv_rpc(int sf_d, node_t *node, char file_hash[ID_SIZE], rpc_msg *reply,
-             node_array *sorted_neighbors);
+             node_array *sorted_neighbors, bool *wait);
 #endif

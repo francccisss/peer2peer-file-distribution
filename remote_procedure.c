@@ -87,7 +87,7 @@ int reply_rpc(int s_fd, METHOD method, void *payload, size_t payload_sz,
 };
 
 int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
-             rpc_msg *msg_buffer, node_array *sorted_neighbors) {
+             rpc_msg *msg_buffer, node_array *sorted_neighbors, bool *wait) {
 
   // grab the port and address of the caller that initiated the request defined
   // by call_rpc
@@ -109,21 +109,8 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
 
     case GET_PEERS: {
 
-      // In this case where GET_PEERS is called, the reply_to will contain the
-      // address of the node that initiated the recursive call
-
-      // since the get_peers goes through each neighbors, and sends an rpc call,
-      // // then each neighbors can independently send their own peers, but the
-      // initiator does not know how many peers to wait for until it can call
-      // join_peers, the stop wait mechanism would work here, first send rpc to
-      // the first closest neighbor, else if it does not return anything at the
-      // alloted time, we move on to the next one until a list peers is returned
-      // to the initiator, or when the number of peers < k peers then we do the
-      // same until peers.len == k
-
       printf("[METHOD CALL]: GET_PEERS \n");
       char *hash = (char *)msg_buffer->body.cbody.payload;
-      printf("[TEST] incoming hash %s\n", hash);
 
       if (strcmp(hash, "") < 0) {
         printf("[ERROR]: hash is empty");
@@ -176,6 +163,7 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
       if (peer_bucket_buf->len == 0 && sorted_neighbors->len > 0) {
         get_peers(s_fd, node, sorted_neighbors, file_hash, reply_to);
         printf("[NOTIF]: peer bucket is empty, search neighbors.\n");
+        *wait = true;
         return 0;
       }
 
@@ -263,7 +251,7 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
       // timeout would only work if this function is called again.
       // eg: new datagram arrives -> is timedout?
       // then that means we are hoping for a new rpc reply to get_peers
-      // before we can even call join_peersask 
+      // before we can even call join_peersask
       // what if the last neighbor returned the peers < K_PEERS while timeout
       // never occured? then join peers is never called
 

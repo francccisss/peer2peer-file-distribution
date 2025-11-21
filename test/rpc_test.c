@@ -3,6 +3,7 @@
 #include "../remote_procedure.h"
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -88,6 +89,7 @@ int main() {
   printf("[TEST] total size of reply body =%ld\n", sizeof(reply_body));
   printf("[TEST] total size of call body =%ld\n", sizeof(call_body));
   rpc_msg msg_buffer;
+	bool wait = false;
   while (1) {
     int r = recvfrom(sfd, &msg_buffer, sizeof(rpc_msg), 0, NULL, 0);
     if (r == -1) {
@@ -96,7 +98,7 @@ int main() {
     }
 
     int ri =
-        recv_rpc(sfd, &node, file.file_hash, &msg_buffer, neighboring_nodes);
+        recv_rpc(sfd, &node, file.file_hash, &msg_buffer, neighboring_nodes, &wait);
     if (ri < 0) {
       printf("[ERROR RECV RPC]: Something went wrong");
     }
