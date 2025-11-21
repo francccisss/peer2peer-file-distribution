@@ -10,8 +10,14 @@
 // eg: init(node.peer_table);  to initialize the node peer_table
 void init_peer_table(peer_bucket_t *(*unint_table)[MAX_PEER_BUCKETS]) {
   // Initializing node's peer table
+  // the unint_table points to the address of node_table
+  // which then assigns the first address with the new_peer_array
+  // until MAX_PEER_BUCKETS
+  // (*unint_table)[i] is valid since it desolves to a pointer
+  // so ((*unint_table)+1) == (*//deref(*deref address of table unint_table + i))
+	// and increments the pointer value by base_ptr + scale * sizeof(peer_bucket pointers)
   for (int i = 0; i < MAX_PEER_BUCKETS; ++i) {
-    (*unint_table)[i] = new_peer_array();
+    (*(*unint_table + i)) = new_peer_array();
   };
 };
 
@@ -22,7 +28,6 @@ uint32_t hash(const char *input) {
     hash ^= (unsigned)b;
     hash *= PRIME;
   }
-
 
   return hash % MAX_PEER_BUCKETS;
 }

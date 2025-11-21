@@ -18,13 +18,15 @@ typedef struct {
   struct node_t **known_nodes;
 } file_info;
 
-int main() {
+int main(int argc, char **argv) {
   struct sockaddr_in src;
+  int arg_port = atoi(argv[1]);
 
+  printf("arg_port=%d\n", arg_port);
   node_t node = {
       .id = "14",
       .ip = "localhost",
-      .port = 6969,
+      .port = arg_port,
   };
 
   // what is being distributed
@@ -70,19 +72,21 @@ int main() {
     t.tv_usec = 0;
     retval = select(s_fd + 1, &rfd, NULL, NULL, &t);
 
+		// when receiver receives a call to get_peers, this will also call join peers
+		// which should not happen, join peers should only happen on the newly connecting node
     if (wait) {
       if (retval < 0) {
         perror("[ERROR] select");
         exit(retval);
       };
       if (retval == 0) {
-				// still need to read the buffer from network device
+        // still need to read the buffer from network device
         int r = recvfrom(s_fd, &msg_buffer, sizeof(msg_buffer), 0, NULL, 0);
         if (r == -1) {
           perror("[ERROR] Socket bind");
           exit(-1);
         }
-				// still need to read the buffer from network device
+        // still need to read the buffer from network device
         printf("polling Timed out\n");
         join_peers(s_fd, &node, file.file_hash);
         wait = false;

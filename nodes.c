@@ -40,6 +40,7 @@ int get_peers(int s_fd, node_t *node, node_array *sorted_neighbors,
               char info_hash[ID_SIZE], origin abs_address) {
 
   // sends the closest node
+// TODO: do something with this lol
   node_t n = (*sorted_neighbors->data)[0];
   origin d_host = {
       .port = n.port,

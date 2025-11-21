@@ -15,25 +15,26 @@ typedef struct {
   struct node_t **known_nodes;
 } file_info;
 
-int main() {
+int main(int argc, char **argv) {
 
   node_array *BOOTSTRAP_NODES = new_node_array();
+  int arg_port = atoi(argv[1]);
 
-  // push_node(BOOTSTRAP_NODES, (node_t){.id = "55", .ip = "", .port = 5432});
-  // push_node(BOOTSTRAP_NODES, (node_t){.id = "10", .ip = "", .port = 4292});
-  // push_node(BOOTSTRAP_NODES, (node_t){.id = "30", .ip = "", .port = 3090});
-  // push_node(BOOTSTRAP_NODES, (node_t){.id = "29", .ip = "", .port = 7010});
-  // push_node(BOOTSTRAP_NODES, (node_t){.id = "24", .ip = "", .port = 7002});
-  // push_node(BOOTSTRAP_NODES, (node_t){.id = "40", .ip = "", .port = 5060});
-  // push_node(BOOTSTRAP_NODES, (node_t){.id = "49", .ip = "", .port = 5030});
-  // push_node(BOOTSTRAP_NODES, (node_t){.id = "19", .ip = "", .port = 6939});
-  // push_node(BOOTSTRAP_NODES, (node_t){.id = "11", .ip = "", .port = 6942});
+  // [TESTING] used for the neighbor of the closest node to the new node
+  // for calling get_peers()
+  // new node -> closest_node -> neighbor
+  if (argc < 3) {
+    push_node(BOOTSTRAP_NODES, (node_t){.id = "69", .ip = "", .port = 3001});
+  } else {
+    push_node(BOOTSTRAP_NODES, (node_t){.id = "420", .ip = "", .port = 3000});
+  };
 
   node_t node = {
       .id = "12",
       .ip = "localhost",
-      .port = 3000,
+      .port = arg_port,
   };
+  printf("[TEST] arg_port=%d\n", arg_port);
 
   struct sockaddr_in src;
   src.sin_port = htons(node.port);
@@ -59,37 +60,40 @@ int main() {
   bootstrap_neigbors(BOOTSTRAP_NODES, BOOTSTRAP_NODES->len, neighboring_nodes);
 
   for (int i = 0; i < BOOTSTRAP_NODES->len; i++) {
-    printf("id =%s\n", (*neighboring_nodes->data)[i].id);
+    printf("[TEST]: Neighbor id =%s, port =%d\n", (*neighboring_nodes->data)[i].id,
+           (*neighboring_nodes->data)[i].port);
   }
 
   compare_hash(neighboring_nodes, neighboring_nodes->len, file.file_hash);
 
-  printf("sorted neighbor len %ld", neighboring_nodes->len);
+  printf("sorted neighbor len %ld\n", neighboring_nodes->len);
   init_peer_table(&node.peer_table);
 
-  set_peer(&node.peer_table, file.file_hash,
-           (peer_t){.ip = "localhost",
-                    .port = 3000,
-                    .job_id = "THiS NODE?",
-                    .state = PASSIVE_ST});
+  // [TESTING] used for the neighbor of the closest node to the new node
+  // for calling get_peers()
+  // new node -> closest_node -> neighbor
+  // if (argc > 2) {
+  //   set_peer(&node.peer_table, file.file_hash,
+  //            (peer_t){.ip = "localhost",
+  //                     .port = 3000,
+  //                     .job_id = "THiS NODE?",
+  //                     .state = PASSIVE_ST});
+  //
+  //   set_peer(&node.peer_table, file.file_hash,
+  //            (peer_t){.ip = "localhost",
+  //                     .port = 3345,
+  //                     .job_id = "job!!",
+  //                     .state = LEECH_ST});
+  //
+  //   set_peer(&node.peer_table, file.file_hash,
+  //            (peer_t){.ip = "localhost",
+  //                     .port = 5598,
+  //                     .job_id = "job?!?1",
+  //                     .state = SEED_ST});
+  // }
 
-  set_peer(&node.peer_table, file.file_hash,
-           (peer_t){.ip = "localhost",
-                    .port = 3345,
-                    .job_id = "job!!",
-                    .state = LEECH_ST});
-
-  set_peer(&node.peer_table, file.file_hash,
-           (peer_t){.ip = "localhost",
-                    .port = 5598,
-                    .job_id = "job?!?1",
-                    .state = SEED_ST});
-
-  printf("[TEST] total size of rpc message =%ld\n", sizeof(rpc_msg));
-  printf("[TEST] total size of reply body =%ld\n", sizeof(reply_body));
-  printf("[TEST] total size of call body =%ld\n", sizeof(call_body));
   rpc_msg msg_buffer;
-	bool wait = false;
+  bool wait = false;
   while (1) {
     int r = recvfrom(sfd, &msg_buffer, sizeof(rpc_msg), 0, NULL, 0);
     if (r == -1) {
@@ -97,8 +101,8 @@ int main() {
       exit(-1);
     }
 
-    int ri =
-        recv_rpc(sfd, &node, file.file_hash, &msg_buffer, neighboring_nodes, &wait);
+    int ri = recv_rpc(sfd, &node, file.file_hash, &msg_buffer,
+                      neighboring_nodes, &wait);
     if (ri < 0) {
       printf("[ERROR RECV RPC]: Something went wrong");
     }
