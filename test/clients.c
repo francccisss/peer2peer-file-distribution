@@ -8,6 +8,7 @@ int main(int argc, char **argv) {
   printf("[TEST]: argc should return number of arguments passed =%d\n", argc);
 
   //*argv  = malloced(sizeof(char * variadic length) * argc)
+	// argv is a pointer to  
   for (int i = 0; i < argc; i++) {
     printf("[TEST]: arguments passed =%s\n", argv[i]);
   };

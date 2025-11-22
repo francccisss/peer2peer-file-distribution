@@ -160,8 +160,11 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
         return r;
       }
 
+				// TODO: if previous neighbor already calls the current neighbor for get peers
+				// it resolves into an infinite loop
       if (peer_bucket_buf->len == 0 && sorted_neighbors->len > 0) {
-					printf("[TEST]: peers in bucket =%ld, sorted_neighbor len =%ld\n", peer_bucket_buf->len, sorted_neighbors->len);
+        printf("[TEST]: peers in bucket =%ld, sorted_neighbor len =%ld\n",
+               peer_bucket_buf->len, sorted_neighbors->len);
 
         get_peers(s_fd, node, sorted_neighbors, file_hash, reply_to);
         printf("[NOTIF]: peer bucket is empty, search neighbors.\n");

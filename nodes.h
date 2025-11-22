@@ -23,7 +23,7 @@ typedef struct {
   uint32_t key;
   size_t cap;
   size_t len; // always access last element at len-1 because of 0 indexing
-  node_t (*data)[INITIAL_CAP];
+  node_t (*data)[INITIAL_CAP]; // pointer to a block of node_t * BLOCK_SIZE
 } node_array;
 
 typedef struct {

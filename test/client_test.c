@@ -72,8 +72,9 @@ int main(int argc, char **argv) {
     t.tv_usec = 0;
     retval = select(s_fd + 1, &rfd, NULL, NULL, &t);
 
-		// when receiver receives a call to get_peers, this will also call join peers
-		// which should not happen, join peers should only happen on the newly connecting node
+    // when receiver receives a call to get_peers, this will also call join
+    // peers which should not happen, join peers should only happen on the newly
+    // connecting node
     if (wait) {
       if (retval < 0) {
         perror("[ERROR] select");

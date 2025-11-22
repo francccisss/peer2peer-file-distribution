@@ -14,8 +14,9 @@ void init_peer_table(peer_bucket_t *(*unint_table)[MAX_PEER_BUCKETS]) {
   // which then assigns the first address with the new_peer_array
   // until MAX_PEER_BUCKETS
   // (*unint_table)[i] is valid since it desolves to a pointer
-  // so ((*unint_table)+1) == (*//deref(*deref address of table unint_table + i))
-	// and increments the pointer value by base_ptr + scale * sizeof(peer_bucket pointers)
+  // so ((*unint_table)+1) == (*//deref(*deref address of table unint_table +
+  // i)) and increments the pointer value by base_ptr + scale *
+  // sizeof(peer_bucket pointers)
   for (int i = 0; i < MAX_PEER_BUCKETS; ++i) {
     (*(*unint_table + i)) = new_peer_array();
   };
