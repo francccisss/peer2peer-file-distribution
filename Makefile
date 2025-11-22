@@ -24,12 +24,12 @@ test_rpc: ./test/rpc_test.c
 	echo "Running RPC"
 	gcc -Wall ./test/rpc_test.c peers.c remote_procedure.c   nodes.c -o ./test/main
 	echo "Compiling with warning args"
-	./test/main
+	./test/main 3000
 
 test_rpc_c: ./test/rpc_test.c
 	echo "Running RPC client"
 	gcc -Wall -g ./test/client_test.c peers.c remote_procedure.c   nodes.c -o ./test/client_test
 	echo "Compiling with warning args"
-	./test/client_test
+	./test/client_test 6969
 
 

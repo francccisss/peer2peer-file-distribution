@@ -52,6 +52,7 @@ int main(int argc, char **argv) {
   push_node(neighboring_nodes,
             (node_t){.distance = 1, .ip = "localhost", .port = 3000});
 
+  // assigning the absolute address of the caller
   origin absolute_address = {.port = node.port};
   strcpy(absolute_address.ip, node.ip);
   init_peer_table(&node.peer_table);

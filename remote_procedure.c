@@ -109,8 +109,18 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
 
     case GET_PEERS: {
 
+      // decode [sizeof(origin),ID_SIZE]
       printf("[METHOD CALL]: GET_PEERS \n");
-      char *hash = (char *)msg_buffer->body.cbody.payload;
+      // uint8_t payload_buffer[MAX_PAYLOAD_SIZE];
+      char hash[ID_SIZE];
+      origin src;
+      memcpy(&src, &msg_buffer->body.cbody.payload, sizeof(origin));
+      memcpy(hash, &msg_buffer->body.cbody.payload[sizeof(origin)], ID_SIZE);
+
+      printf("[TEST]: HASH DECODED=%s\n", hash);
+      printf("[TEST]: src ip=%s, port=%d\n", src.ip, ntohs(src.port));
+
+      return 0;
 
       if (strcmp(hash, "") < 0) {
         printf("[ERROR]: hash is empty");
@@ -160,12 +170,19 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
         return r;
       }
 
-				// TODO: if previous neighbor already calls the current neighbor for get peers
-				// it resolves into an infinite loop
+      // TODO: if previous neighbor already calls the current neighbor for get
+      // peers it resolves into an infinite loop
+      // check if the sender is one of the neighbors, if it exists as one of the
+      // neighbors do not send back to that same neighbor and instead send
+      // directly to the initil caller of the get_peers method
+
       if (peer_bucket_buf->len == 0 && sorted_neighbors->len > 0) {
         printf("[TEST]: peers in bucket =%ld, sorted_neighbor len =%ld\n",
                peer_bucket_buf->len, sorted_neighbors->len);
 
+        // abs_address would usually be the address of the current node that
+        // called get_peers but in this context, it has to propagate its
+        // neighbors and send a direct rpc call to the initiator
         get_peers(s_fd, node, sorted_neighbors, file_hash, reply_to);
         printf("[NOTIF]: peer bucket is empty, search neighbors.\n");
         *wait = true;
