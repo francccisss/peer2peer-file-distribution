@@ -46,39 +46,25 @@ void bootstrap_neigbors(node_array *src, size_t n_count, node_array *dst);
  * - no neighbors
  */
 
+// a fild descriptor returned by call socket() 
+typedef int SOCKET_FILE_DESCRIPTOR;
+
 void compare_hash(node_array *neighbors, size_t n_count,
                   char info_hash[ID_SIZE]);
 
 void XORdistance(char info_hash[ID_SIZE], node_t *node);
 
 // calling get_peers on behalf of the initial caller:
-// - pass around the ip and port of the original caller
-// - make recursive call, handle the return of the results when it
-// reaches a base case but need to modify the REPLY section to define
-// what it should do, but then we also need every call or reply to carry
-// some specific metadata specifically for GET_PEERS, eg: the callee
-// node should know if wether or not if it should store the peers or
-// reply back to its caller with the results as the payload, which would
-// incur multiple recursive calls if it is empty which makes it a waste
-// so passing the `absolute address` or address of the intitial caller
-// would make things much more faster since every node would have a
-// direct contact instead of backtracking and making things more
-// complicated.
-// flow: initial call to get_peers, the original node wil pass its own
-// port and address as the abs_address, node1 -> neighbor1 receives the
-// GET_PEER request from node1, checks its entry and if it doesn't exist
-// it calls to get_peers again but passes the reply_to which is the caller's
-// address instead of its own to the its own neighbor
-//
-// TODO: start a timer for the initiator (pseudo reliable transmission protocol)
-// - fixed time for when datagram leaves the host
-// - at timeout, resend datagram since the receiver will just throw away the
-// request if
-// - it fails internally.
-//
-
-int get_peers(int s_fd, node_t *node, node_array *sorted_neigbors,
-              char info_hash[ID_SIZE], origin abs_address);
+// - `s_fd` socket file descriptor
+// - `node` extract the `origin` of the current node to be used
+// as the sender information through the `rpc_call`
+// - `sorted_neighbors` the array of the neighboring nodes of the current `node`
+// will iterate to send an `rpc_call` to `get_peers`
+// - `info_hash` well.
+// - `abs_address` indicates the src of the caller that initated the `get_peers`
+int get_peers(SOCKET_FILE_DESCRIPTOR s_fd, node_t *node,
+              node_array *sorted_neigbors, char info_hash[ID_SIZE],
+              origin abs_address);
 int join_peers(int s_fd, node_t *node, char info_hash[ID_SIZE]);
 
 node_array *new_node_array();

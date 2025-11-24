@@ -37,32 +37,42 @@ int join_peers(int s_fd, node_t *node, char info_hash[ID_SIZE]) {
   return 0;
 }
 
-// abs_address is the port and address of the caller
+// abs address will be included withi nthe payload and will be passed in
 int get_peers(int s_fd, node_t *node, node_array *sorted_neighbors,
               char info_hash[ID_SIZE], origin abs_address) {
+
+  // caller
+  origin host = {
+      .port = htons(node->port),
+  };
+  strcpy(host.ip, node->ip);
+
+  // GET_PEERS initator
+  origin src = {
+      .port = abs_address.port,
+  };
+  strcpy(src.ip, abs_address.ip);
+
+  uint8_t payload[MAX_PAYLOAD_SIZE];
+
+  // embed the src and info_hash within the payload
+  memcpy(&payload, &src, sizeof(origin));
+  memcpy(&payload[sizeof(origin)], info_hash, ID_SIZE);
 
   for (int i = 0; i < sorted_neighbors->len; i++) {
 
     node_t n = (*sorted_neighbors->data)[i];
+
     origin d_host = {
         .port = n.port,
     };
     strcpy(d_host.ip, n.ip);
-    // isze of origin and size of info hash
-    // total payload for both origin and hash info 36 + 18 = 54
-    // or you know just pass in the max payload size
-    uint8_t payload[MAX_PAYLOAD_SIZE];
-    origin caller_host = {
-        .port = htons(node->port),
-    };
 
-    strcpy(caller_host.ip, node->ip);
-
-    memcpy(&payload, &caller_host, sizeof(origin));
-    memcpy(&payload[sizeof(origin)], info_hash, ID_SIZE);
-
-    int rs = call_rpc(s_fd, GET_PEERS, &payload, MAX_PAYLOAD_SIZE, d_host,
-                      abs_address);
+    // passing `abs_address` to `call_rpc` so that the receiver will be able to
+    // send it directly to the iniator instead of the nodes subsequent to it
+    // after its callto reduce RTT
+    int rs =
+        call_rpc(s_fd, GET_PEERS, &payload, MAX_PAYLOAD_SIZE, d_host, host);
 
     if (rs < 0) {
       printf("[WARN]: unable to initiate GET_PEERS call with distance=%d\n",
