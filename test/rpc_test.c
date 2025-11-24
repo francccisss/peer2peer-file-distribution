@@ -24,9 +24,9 @@ int main(int argc, char **argv) {
   // for calling get_peers()
   // new node -> closest_node -> neighbor
   if (argc < 3) {
-    push_node(BOOTSTRAP_NODES, (node_t){.id = "69", .ip = "", .port = 3001});
+    push_node(BOOTSTRAP_NODES, (node_t){.id = "69", .ip = "localhost", .port = 3001});
   } else {
-    push_node(BOOTSTRAP_NODES, (node_t){.id = "420", .ip = "", .port = 3000});
+    push_node(BOOTSTRAP_NODES, (node_t){.id = "420", .ip = "localhost", .port = 3000});
   };
 
   node_t node = {
@@ -72,25 +72,25 @@ int main(int argc, char **argv) {
   // [TESTING] used for the neighbor of the closest node to the new node
   // for calling get_peers()
   // new node -> closest_node -> neighbor
-  // if (argc > 2) {
-  //   set_peer(&node.peer_table, file.file_hash,
-  //            (peer_t){.ip = "localhost",
-  //                     .port = 3000,
-  //                     .job_id = "THiS NODE?",
-  //                     .state = PASSIVE_ST});
-  //
-  //   set_peer(&node.peer_table, file.file_hash,
-  //            (peer_t){.ip = "localhost",
-  //                     .port = 3345,
-  //                     .job_id = "job!!",
-  //                     .state = LEECH_ST});
-  //
-  //   set_peer(&node.peer_table, file.file_hash,
-  //            (peer_t){.ip = "localhost",
-  //                     .port = 5598,
-  //                     .job_id = "job?!?1",
-  //                     .state = SEED_ST});
-  // }
+  if (argc > 2) {
+    set_peer(&node.peer_table, file.file_hash,
+             (peer_t){.ip = "localhost",
+                      .port = 3000,
+                      .job_id = "THiS NODE?",
+                      .state = PASSIVE_ST});
+
+    set_peer(&node.peer_table, file.file_hash,
+             (peer_t){.ip = "localhost",
+                      .port = 3345,
+                      .job_id = "job!!",
+                      .state = LEECH_ST});
+
+    set_peer(&node.peer_table, file.file_hash,
+             (peer_t){.ip = "localhost",
+                      .port = 5598,
+                      .job_id = "job?!?1",
+                      .state = SEED_ST});
+  }
 
   rpc_msg msg_buffer;
   bool wait = false;

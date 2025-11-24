@@ -24,7 +24,6 @@ test_rpc: ./test/rpc_test.c
 	echo "Running RPC"
 	gcc -Wall ./test/rpc_test.c peers.c remote_procedure.c   nodes.c -o ./test/main
 	echo "Compiling with warning args"
-	./test/main 3000
 
 test_rpc_c: ./test/rpc_test.c
 	echo "Running RPC client"
