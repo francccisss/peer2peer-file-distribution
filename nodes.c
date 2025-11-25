@@ -37,21 +37,19 @@ int join_peers(int s_fd, node_t *node, char info_hash[ID_SIZE]) {
   return 0;
 }
 
-// abs address will be included withi nthe payload and will be passed in
 int get_peers(int s_fd, node_t *node, node_array *sorted_neighbors,
-              char info_hash[ID_SIZE], origin abs_address) {
+              char info_hash[ID_SIZE], origin src_addr, origin reply_to) {
 
-  // caller
   origin host = {
-      .port = htons(node->port),
+      .port = node->port,
   };
   strcpy(host.ip, node->ip);
 
-  // GET_PEERS initator
+  // GET_PEERS initator will be in payload
   origin src = {
-      .port = abs_address.port,
+      .port = htons(src_addr.port),
   };
-  strcpy(src.ip, abs_address.ip);
+  strcpy(src.ip, src_addr.ip);
 
   uint8_t payload[MAX_PAYLOAD_SIZE];
 
@@ -63,12 +61,20 @@ int get_peers(int s_fd, node_t *node, node_array *sorted_neighbors,
 
     node_t n = (*sorted_neighbors->data)[i];
 
+    // compare this to the reply_to not the abs
+    if (strcmp(n.ip, reply_to.ip) == 0 && n.port == reply_to.port) {
+      printf("[TEST]: Don't send back to this neighbor\n");
+      continue;
+    }
+    printf("[TEST]: node: ip=%s, port=%d\n[TEST]: reply_to: ip=%s, port=%d\n", n.ip,
+           n.port, reply_to.ip, reply_to.port);
+
     origin d_host = {
         .port = n.port,
     };
     strcpy(d_host.ip, n.ip);
 
-    // passing `abs_address` to `call_rpc` so that the receiver will be able to
+    // passing `src_addr` to `call_rpc` so that the receiver will be able to
     // send it directly to the iniator instead of the nodes subsequent to it
     // after its callto reduce RTT
     int rs =

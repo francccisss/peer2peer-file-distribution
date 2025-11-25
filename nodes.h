@@ -46,7 +46,7 @@ void bootstrap_neigbors(node_array *src, size_t n_count, node_array *dst);
  * - no neighbors
  */
 
-// a fild descriptor returned by call socket() 
+// a fild descriptor returned by call socket()
 typedef int SOCKET_FILE_DESCRIPTOR;
 
 void compare_hash(node_array *neighbors, size_t n_count,
@@ -61,10 +61,24 @@ void XORdistance(char info_hash[ID_SIZE], node_t *node);
 // - `sorted_neighbors` the array of the neighboring nodes of the current `node`
 // will iterate to send an `rpc_call` to `get_peers`
 // - `info_hash` well.
-// - `abs_address` indicates the src of the caller that initated the `get_peers`
+// - `src_addr` indicates the src of the caller that initated the `get_peers`
+// - `reply_to` is the origin of the node that called this current node to
+// `get_peers`. not to be confused with the `src_addr` which is the original
+// caller that initated the `GET_PEERS` chain call.
+// The existence of `reply_to` is to check if the current node is a neighbor to
+// the node that called it, and if so it does not send a `GET_PEERS` to that
+// neighbor to prevent an infinite call loop between the 2 nodes.
+//
+//
+// How Inifinite call occur:
+// node_caller calls to its neighbor for get_peers, neighbor's peer table is
+// empty and sends a get_peers to its own list of neighbors, it sees that the
+// sender (node_caller) is one of it's neighbor, it sends an rpc call back to it
+// to get peers, but since the node_caller also has no peers, it then checks its
+// own neighbor, and the process repeats infinitely
 int get_peers(SOCKET_FILE_DESCRIPTOR s_fd, node_t *node,
               node_array *sorted_neigbors, char info_hash[ID_SIZE],
-              origin abs_address);
+              origin src_addr, origin reply_to);
 int join_peers(int s_fd, node_t *node, char info_hash[ID_SIZE]);
 
 node_array *new_node_array();

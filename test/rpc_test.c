@@ -72,25 +72,25 @@ int main(int argc, char **argv) {
   // [TESTING] used for the neighbor of the closest node to the new node
   // for calling get_peers()
   // new node -> closest_node -> neighbor
-  if (argc > 2) {
-    set_peer(&node.peer_table, file.file_hash,
-             (peer_t){.ip = "localhost",
-                      .port = 3000,
-                      .job_id = "THiS NODE?",
-                      .state = PASSIVE_ST});
-
-    set_peer(&node.peer_table, file.file_hash,
-             (peer_t){.ip = "localhost",
-                      .port = 3345,
-                      .job_id = "job!!",
-                      .state = LEECH_ST});
-
-    set_peer(&node.peer_table, file.file_hash,
-             (peer_t){.ip = "localhost",
-                      .port = 5598,
-                      .job_id = "job?!?1",
-                      .state = SEED_ST});
-  }
+  // if (argc > 2) {
+  //   set_peer(&node.peer_table, file.file_hash,
+  //            (peer_t){.ip = "localhost",
+  //                     .port = 3000,
+  //                     .job_id = "THiS NODE?",
+  //                     .state = PASSIVE_ST});
+  //
+  //   set_peer(&node.peer_table, file.file_hash,
+  //            (peer_t){.ip = "localhost",
+  //                     .port = 3345,
+  //                     .job_id = "job!!",
+  //                     .state = LEECH_ST});
+  //
+  //   set_peer(&node.peer_table, file.file_hash,
+  //            (peer_t){.ip = "localhost",
+  //                     .port = 5598,
+  //                     .job_id = "job?!?1",
+  //                     .state = SEED_ST});
+  // }
 
   rpc_msg msg_buffer;
   bool wait = false;

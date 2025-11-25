@@ -29,6 +29,7 @@ int main(int argc, char **argv) {
       .port = arg_port,
   };
 
+
   // what is being distributed
   file_info file = {.file_hash = "13", .date_created = "November 6 2025"};
   src.sin_family = AF_INET;
@@ -57,7 +58,8 @@ int main(int argc, char **argv) {
   strcpy(absolute_address.ip, node.ip);
   init_peer_table(&node.peer_table);
 
-  get_peers(s_fd, &node, neighboring_nodes, file.file_hash, absolute_address);
+  get_peers(s_fd, &node, neighboring_nodes, file.file_hash, absolute_address,
+            absolute_address);
 
   bool wait = true;
   rpc_msg msg_buffer;
