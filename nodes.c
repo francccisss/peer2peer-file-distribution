@@ -66,8 +66,6 @@ int get_peers(int s_fd, node_t *node, node_array *sorted_neighbors,
       printf("[TEST]: Don't send back to this neighbor\n");
       continue;
     }
-    printf("[TEST]: node: ip=%s, port=%d\n[TEST]: reply_to: ip=%s, port=%d\n", n.ip,
-           n.port, reply_to.ip, reply_to.port);
 
     origin d_host = {
         .port = n.port,

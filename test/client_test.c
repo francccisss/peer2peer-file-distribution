@@ -29,7 +29,6 @@ int main(int argc, char **argv) {
       .port = arg_port,
   };
 
-
   // what is being distributed
   file_info file = {.file_hash = "13", .date_created = "November 6 2025"};
   src.sin_family = AF_INET;
@@ -65,39 +64,36 @@ int main(int argc, char **argv) {
   rpc_msg msg_buffer;
   fd_set rfd;
   struct timeval t;
-  uint8_t max_time = 1;
+  uint8_t max_time = 4;
 
-  int retval;
   while (1) {
     FD_ZERO(&rfd);
     FD_SET(s_fd, &rfd);
     t.tv_sec = max_time;
     t.tv_usec = 0;
-    retval = select(s_fd + 1, &rfd, NULL, NULL, &t);
+
+    int retval = select(s_fd + 1, &rfd, NULL, NULL, &t);
 
     // when receiver receives a call to get_peers, this will also call join
     // peers which should not happen, join peers should only happen on the newly
     // connecting node
+    printf("huh\n");
     if (wait) {
+
       if (retval < 0) {
         perror("[ERROR] select");
         exit(retval);
       };
+
       if (retval == 0) {
-        // still need to read the buffer from network device
-        int r = recvfrom(s_fd, &msg_buffer, sizeof(msg_buffer), 0, NULL, 0);
-        if (r == -1) {
-          perror("[ERROR] Socket bind");
-          exit(-1);
-        }
         // still need to read the buffer from network device
         printf("polling Timed out\n");
         join_peers(s_fd, &node, file.file_hash);
         wait = false;
         continue;
       };
-
       printf("request received\n");
+      exit(0);
     };
 
     int r = recvfrom(s_fd, &msg_buffer, sizeof(msg_buffer), 0, NULL, 0);
@@ -105,8 +101,9 @@ int main(int argc, char **argv) {
       perror("[ERROR] Socket bind");
       exit(-1);
     }
-    recv_rpc(s_fd, &node, file.file_hash, &msg_buffer, neighboring_nodes,
-             &wait);
+    printf("request received\n");
+    // recv_rpc(s_fd, &node, file.file_hash, &msg_buffer, neighboring_nodes,
+    //          &wait);
   }
 
   return 0;
