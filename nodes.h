@@ -61,14 +61,13 @@ void XORdistance(char info_hash[ID_SIZE], node_t *node);
 // - `sorted_neighbors` the array of the neighboring nodes of the current `node`
 // will iterate to send an `rpc_call` to `get_peers`
 // - `info_hash` well.
-// - `src_addr` indicates the src of the caller that initated the `get_peers`
+// - `src_addr` indicates the `source` of the caller that initated the `get_peers` chain
 // - `reply_to` is the origin of the node that called this current node to
 // `get_peers`. not to be confused with the `src_addr` which is the original
 // caller that initated the `GET_PEERS` chain call.
 // The existence of `reply_to` is to check if the current node is a neighbor to
 // the node that called it, and if so it does not send a `GET_PEERS` to that
-// neighbor to prevent an infinite call loop between the 2 nodes.
-//
+// neighbor to prevent an infinite call loop between the 2 nodes. \n
 //
 // How Inifinite call occur:
 // node_caller calls to its neighbor for get_peers, neighbor's peer table is

@@ -30,7 +30,6 @@ int join_peers(int s_fd, node_t *node, char info_hash[ID_SIZE]) {
     printf("[TEST CASTED BUF]: ip=%s, port=%d\n", cur_peer.ip, cur_peer.port);
     origin destination = {.port = cur_peer.port};
     strcpy(destination.ip, cur_peer.ip);
-
     call_rpc(s_fd, JOIN, NULL, 0, destination, host);
   };
   free(bucket_buf);
