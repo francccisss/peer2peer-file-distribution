@@ -98,6 +98,7 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
   printf("[TEST NETWORK]: sender destination ip=%s, port=%d\n", reply_to.ip,
          reply_to.port);
 
+  // decode msg_buffer's additional information
   msg_buffer->body.cbody.method = ntohs(msg_buffer->body.cbody.method);
   msg_buffer->segment_count = ntohl(msg_buffer->segment_count);
   msg_buffer->segment_number = ntohl(msg_buffer->segment_number);
@@ -109,8 +110,22 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
 
     case GET_PEERS: {
 
+      /*
+       *
+       * The payload of the `call_rpc` in the context of `GET_PEERS`
+       * contains the `src_addr origin` and as well as the `hash_info`
+       *
+       * The `src_addr` is the original caller that initiated the `GET_PEERS`
+       * chain
+       *
+       * decode [sizeof(origin),ID_SIZE]
+       *
+       */
       printf("[METHOD CALL]: GET_PEERS \n");
-      char *hash = (char *)msg_buffer->body.cbody.payload;
+      char hash[ID_SIZE];
+      memcpy(hash, &msg_buffer->body.cbody.payload[sizeof(origin)], ID_SIZE);
+
+      printf("[TEST]: HASH DECODED=%s\n", hash);
 
       if (strcmp(hash, "") < 0) {
         printf("[ERROR]: hash is empty");
@@ -160,9 +175,19 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
         return r;
       }
 
+      origin src_addr;
+      memcpy(&src_addr, &msg_buffer->body.cbody.payload, sizeof(origin));
+      src_addr.port = ntohs(src_addr.port);
+
+      printf("[TEST]: src_addr ip=%s, port=%d\n", src_addr.ip,
+            src_addr.port);
+
       if (peer_bucket_buf->len == 0 && sorted_neighbors->len > 0) {
-        get_peers(s_fd, node, sorted_neighbors, file_hash, reply_to);
-        printf("[NOTIF]: peer bucket is empty, search neighbors.\n");
+        printf("[TEST]: peers in bucket =%ld, sorted_neighbor len =%ld\n",
+               peer_bucket_buf->len, sorted_neighbors->len);
+        // pass in reply to
+        get_peers(s_fd, node, sorted_neighbors, file_hash, src_addr, reply_to);
+        printf("[NOTIF]: peer bucket is empty, search neighbors from port %d.\n", node->port);
         *wait = true;
         return 0;
       }
@@ -177,8 +202,9 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
       memcpy(buffer + 1, peer_bucket_buf->data,
              sizeof(peer_t) * peer_bucket_buf->len);
 
+      // send the results to the `source`
       reply_rpc(s_fd, msg_buffer->body.cbody.method, buffer,
-                sizeof(peer_t) * peer_bucket_buf->len + 1, reply_to,
+                sizeof(peer_t) * peer_bucket_buf->len + 1, src_addr,
                 msg_buffer->correlation_id, OK);
       free(peer_bucket_buf);
       return 0;

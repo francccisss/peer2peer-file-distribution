@@ -128,6 +128,17 @@ typedef struct {
  * will be used by recv_rpc's reply_to parameter
  *
  *
+ * aside from the d_host and host, the rpc methods will handle the conversion from htons -> ntohs and vice versa
+ */
+
+/*
+ * The `d_host` origin - destination host to where to send the call to.
+ * The `host` origin - is the origin of the caller
+ *
+ * The `reply_rpc` uses the `host` that was provided by the caller as a
+ * `reply_to` object that the mentioned function will use to reply back to the
+ * caller
+ *
  */
 int call_rpc(int s_fd, METHOD method, void *arg, size_t payload_sz,
              origin d_host, origin host);

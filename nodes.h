@@ -23,7 +23,7 @@ typedef struct {
   uint32_t key;
   size_t cap;
   size_t len; // always access last element at len-1 because of 0 indexing
-  node_t (*data)[INITIAL_CAP];
+  node_t (*data)[INITIAL_CAP]; // pointer to a block of node_t * BLOCK_SIZE
 } node_array;
 
 typedef struct {
@@ -46,39 +46,38 @@ void bootstrap_neigbors(node_array *src, size_t n_count, node_array *dst);
  * - no neighbors
  */
 
+// a fild descriptor returned by call socket()
+typedef int SOCKET_FILE_DESCRIPTOR;
+
 void compare_hash(node_array *neighbors, size_t n_count,
                   char info_hash[ID_SIZE]);
 
 void XORdistance(char info_hash[ID_SIZE], node_t *node);
 
 // calling get_peers on behalf of the initial caller:
-// - pass around the ip and port of the original caller
-// - make recursive call, handle the return of the results when it
-// reaches a base case but need to modify the REPLY section to define
-// what it should do, but then we also need every call or reply to carry
-// some specific metadata specifically for GET_PEERS, eg: the callee
-// node should know if wether or not if it should store the peers or
-// reply back to its caller with the results as the payload, which would
-// incur multiple recursive calls if it is empty which makes it a waste
-// so passing the `absolute address` or address of the intitial caller
-// would make things much more faster since every node would have a
-// direct contact instead of backtracking and making things more
-// complicated.
-// flow: initial call to get_peers, the original node wil pass its own
-// port and address as the abs_address, node1 -> neighbor1 receives the
-// GET_PEER request from node1, checks its entry and if it doesn't exist
-// it calls to get_peers again but passes the reply_to which is the caller's
-// address instead of its own to the its own neighbor
+// - `s_fd` socket file descriptor
+// - `node` extract the `origin` of the current node to be used
+// as the sender information through the `rpc_call`
+// - `sorted_neighbors` the array of the neighboring nodes of the current `node`
+// will iterate to send an `rpc_call` to `get_peers`
+// - `info_hash` well.
+// - `src_addr` indicates the `source` of the caller that initated the `get_peers` chain
+// - `reply_to` is the origin of the node that called this current node to
+// `get_peers`. not to be confused with the `src_addr` which is the original
+// caller that initated the `GET_PEERS` chain call.
+// The existence of `reply_to` is to check if the current node is a neighbor to
+// the node that called it, and if so it does not send a `GET_PEERS` to that
+// neighbor to prevent an infinite call loop between the 2 nodes. \n
 //
-// TODO: start a timer for the initiator (pseudo reliable transmission protocol)
-// - fixed time for when datagram leaves the host
-// - at timeout, resend datagram since the receiver will just throw away the
-// request if
-// - it fails internally.
-//
-
-int get_peers(int s_fd, node_t *node, node_array *sorted_neigbors,
-              char info_hash[ID_SIZE], origin abs_address);
+// How Inifinite call occur:
+// node_caller calls to its neighbor for get_peers, neighbor's peer table is
+// empty and sends a get_peers to its own list of neighbors, it sees that the
+// sender (node_caller) is one of it's neighbor, it sends an rpc call back to it
+// to get peers, but since the node_caller also has no peers, it then checks its
+// own neighbor, and the process repeats infinitely
+int get_peers(SOCKET_FILE_DESCRIPTOR s_fd, node_t *node,
+              node_array *sorted_neigbors, char info_hash[ID_SIZE],
+              origin src_addr, origin reply_to);
 int join_peers(int s_fd, node_t *node, char info_hash[ID_SIZE]);
 
 node_array *new_node_array();

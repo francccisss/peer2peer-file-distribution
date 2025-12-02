@@ -18,13 +18,21 @@ typedef struct {
   struct node_t **known_nodes;
 } file_info;
 
-int main() {
+int main(int argc, char **argv) {
   struct sockaddr_in src;
 
+  if (strcmp(argv[1], "") < 0) {
+    perror("[ERROR] port not defined");
+    return -1;
+  }
+  int host_port = atoi(argv[1]);
+  int neighbor_port = atoi(argv[2]);
+
+  printf("host_port=%d\n", host_port);
   node_t node = {
       .id = "14",
       .ip = "localhost",
-      .port = 6969,
+      .port = host_port,
   };
 
   // what is being distributed
@@ -48,48 +56,50 @@ int main() {
   // compare_hash(node.neighbors, N_COUNT, file.file_hash, closest_neighbors);
 
   push_node(neighboring_nodes,
-            (node_t){.distance = 1, .ip = "localhost", .port = 3000});
+            (node_t){.distance = 1, .ip = "localhost", .port = neighbor_port});
 
+  // assigning the absolute address of the caller
   origin absolute_address = {.port = node.port};
   strcpy(absolute_address.ip, node.ip);
   init_peer_table(&node.peer_table);
 
-  get_peers(s_fd, &node, neighboring_nodes, file.file_hash, absolute_address);
+  get_peers(s_fd, &node, neighboring_nodes, file.file_hash, absolute_address,
+            absolute_address);
 
   bool wait = true;
   rpc_msg msg_buffer;
   fd_set rfd;
   struct timeval t;
-  uint8_t max_time = 1;
+  uint8_t max_time = 4;
 
-  int retval;
   while (1) {
     FD_ZERO(&rfd);
     FD_SET(s_fd, &rfd);
     t.tv_sec = max_time;
     t.tv_usec = 0;
-    retval = select(s_fd + 1, &rfd, NULL, NULL, &t);
 
+    int retval = select(s_fd + 1, &rfd, NULL, NULL, &t);
+
+    // when receiver receives a call to get_peers, this will also call join
+    // peers which should not happen, join peers should only happen on the newly
+    // connecting node
+    printf("huh\n");
     if (wait) {
+
       if (retval < 0) {
         perror("[ERROR] select");
         exit(retval);
       };
+
       if (retval == 0) {
-				// still need to read the buffer from network device
-        int r = recvfrom(s_fd, &msg_buffer, sizeof(msg_buffer), 0, NULL, 0);
-        if (r == -1) {
-          perror("[ERROR] Socket bind");
-          exit(-1);
-        }
-				// still need to read the buffer from network device
+        // still need to read the buffer from network device
         printf("polling Timed out\n");
         join_peers(s_fd, &node, file.file_hash);
         wait = false;
         continue;
       };
-
       printf("request received\n");
+      exit(0);
     };
 
     int r = recvfrom(s_fd, &msg_buffer, sizeof(msg_buffer), 0, NULL, 0);
@@ -97,8 +107,9 @@ int main() {
       perror("[ERROR] Socket bind");
       exit(-1);
     }
-    recv_rpc(s_fd, &node, file.file_hash, &msg_buffer, neighboring_nodes,
-             &wait);
+    printf("request received\n");
+    // recv_rpc(s_fd, &node, file.file_hash, &msg_buffer, neighboring_nodes,
+    //          &wait);
   }
 
   return 0;
