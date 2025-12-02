@@ -20,13 +20,19 @@ typedef struct {
 
 int main(int argc, char **argv) {
   struct sockaddr_in src;
-  int arg_port = atoi(argv[1]);
 
-  printf("arg_port=%d\n", arg_port);
+  if (strcmp(argv[1], "") < 0) {
+    perror("[ERROR] port not defined");
+    return -1;
+  }
+  int host_port = atoi(argv[1]);
+  int neighbor_port = atoi(argv[2]);
+
+  printf("host_port=%d\n", host_port);
   node_t node = {
       .id = "14",
       .ip = "localhost",
-      .port = arg_port,
+      .port = host_port,
   };
 
   // what is being distributed
@@ -50,7 +56,7 @@ int main(int argc, char **argv) {
   // compare_hash(node.neighbors, N_COUNT, file.file_hash, closest_neighbors);
 
   push_node(neighboring_nodes,
-            (node_t){.distance = 1, .ip = "localhost", .port = 3000});
+            (node_t){.distance = 1, .ip = "localhost", .port = neighbor_port});
 
   // assigning the absolute address of the caller
   origin absolute_address = {.port = node.port};

@@ -18,23 +18,33 @@ typedef struct {
 int main(int argc, char **argv) {
 
   node_array *BOOTSTRAP_NODES = new_node_array();
-  int arg_port = atoi(argv[1]);
 
+  if (strcmp(argv[1], "") < 0) {
+    perror("[ERROR] port not defined");
+    return -1;
+  }
   // [TESTING] used for the neighbor of the closest node to the new node
-  // for calling get_peers()
-  // new node -> closest_node -> neighbor
-  if (argc < 3) {
-    push_node(BOOTSTRAP_NODES, (node_t){.id = "69", .ip = "localhost", .port = 3001});
-  } else {
-    push_node(BOOTSTRAP_NODES, (node_t){.id = "420", .ip = "localhost", .port = 3000});
-  };
+  // args: host_port, n_ports, ports... len -1 (binary included)
+  // args[0] = host
+  // args[1] = n_ports
+  // args[1:...] = ports
+  // start iterating in argv[2] which is the first neighbor port
+
+  int host_port = atoi(argv[0]);
+  printf("[TEST] host_port=%d\n", host_port);
+  int n_ports = atoi(argv[1]);
+  for (int i = 0; i == n_ports; i++) {
+    push_node(
+        BOOTSTRAP_NODES,
+        (node_t){.id = "69", .ip = "localhost", .port = atoi(argv[2 + i])});
+  }
 
   node_t node = {
       .id = "12",
       .ip = "localhost",
-      .port = arg_port,
+      .port = host_port,
   };
-  printf("[TEST] arg_port=%d\n", arg_port);
+  printf("[TEST] host_port=%d\n", host_port);
 
   struct sockaddr_in src;
   src.sin_port = htons(node.port);
@@ -60,7 +70,8 @@ int main(int argc, char **argv) {
   bootstrap_neigbors(BOOTSTRAP_NODES, BOOTSTRAP_NODES->len, neighboring_nodes);
 
   for (int i = 0; i < BOOTSTRAP_NODES->len; i++) {
-    printf("[TEST]: Neighbor id =%s, port =%d\n", (*neighboring_nodes->data)[i].id,
+    printf("[TEST]: Neighbor id =%s, port =%d\n",
+           (*neighboring_nodes->data)[i].id,
            (*neighboring_nodes->data)[i].port);
   }
 
@@ -72,25 +83,19 @@ int main(int argc, char **argv) {
   // [TESTING] used for the neighbor of the closest node to the new node
   // for calling get_peers()
   // new node -> closest_node -> neighbor
-  // if (argc > 2) {
-  //   set_peer(&node.peer_table, file.file_hash,
-  //            (peer_t){.ip = "localhost",
-  //                     .port = 3000,
-  //                     .job_id = "THiS NODE?",
-  //                     .state = PASSIVE_ST});
-  //
-  //   set_peer(&node.peer_table, file.file_hash,
-  //            (peer_t){.ip = "localhost",
-  //                     .port = 3345,
-  //                     .job_id = "job!!",
-  //                     .state = LEECH_ST});
-  //
-  //   set_peer(&node.peer_table, file.file_hash,
-  //            (peer_t){.ip = "localhost",
-  //                     .port = 5598,
-  //                     .job_id = "job?!?1",
-  //                     .state = SEED_ST});
-  // }
+  if (n_ports > 1) {
+    set_peer(&node.peer_table, file.file_hash,
+             (peer_t){.ip = "localhost",
+                      .port = 6969,
+                      .job_id = "THiS NODE?",
+                      .state = PASSIVE_ST});
+
+    set_peer(&node.peer_table, file.file_hash,
+             (peer_t){.ip = "localhost",
+                      .port = 4209,
+                      .job_id = "job!!",
+                      .state = LEECH_ST});
+  }
 
   rpc_msg msg_buffer;
   bool wait = false;
