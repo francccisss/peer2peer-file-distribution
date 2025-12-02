@@ -33,7 +33,10 @@ int main(int argc, char **argv) {
   int host_port = atoi(argv[0]);
   printf("[TEST] host_port=%d\n", host_port);
   int n_ports = atoi(argv[1]);
-  for (int i = 0; i == n_ports; i++) {
+  for (int i = 0; i < n_ports; i++) {
+
+    printf("[TEST]:host_port=%d -> neighbor_port=%d\n", host_port,
+           atoi(argv[2 + i]));
     push_node(
         BOOTSTRAP_NODES,
         (node_t){.id = "69", .ip = "localhost", .port = atoi(argv[2 + i])});
@@ -69,12 +72,6 @@ int main(int argc, char **argv) {
   // compare_hash(node.neighbors, N_COUNT, file.file_hash, closest_neighbors);
   bootstrap_neigbors(BOOTSTRAP_NODES, BOOTSTRAP_NODES->len, neighboring_nodes);
 
-  for (int i = 0; i < BOOTSTRAP_NODES->len; i++) {
-    printf("[TEST]: Neighbor id =%s, port =%d\n",
-           (*neighboring_nodes->data)[i].id,
-           (*neighboring_nodes->data)[i].port);
-  }
-
   compare_hash(neighboring_nodes, neighboring_nodes->len, file.file_hash);
 
   printf("sorted neighbor len %ld\n", neighboring_nodes->len);
@@ -95,7 +92,14 @@ int main(int argc, char **argv) {
                       .port = 4209,
                       .job_id = "job!!",
                       .state = LEECH_ST});
+
+  peer_bucket_t *peer_bucket_buf = malloc(sizeof(peer_bucket_t));
+  get_peer_bucket(&node.peer_table, file.file_hash, &peer_bucket_buf);
+
+  printf("[INFO]: peer len for host =%d -> len %ld\n", host_port,
+         peer_bucket_buf->len);
   }
+
 
   rpc_msg msg_buffer;
   bool wait = false;

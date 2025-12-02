@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <threads.h>
 #include <unistd.h>
 #define MAX_OBJECTS 3
 #define STR_LEN 32
@@ -20,7 +21,6 @@ int fork_proc(char *path, char *argc[]) {
       exit(r);
     }
     close(fds[0]);
-    exit(r);
   }
   if (pid < 0) {
     perror("[ERROR] fork error");
@@ -57,22 +57,30 @@ int main() {
   }
 
   pid_t p = getpid();
+
   if (p > 0) {
     // nodes
-    for (int i = 0; i < NUM_NODES; i++) {
-      f_args[0] = node_ports[i];
-      f_args[1] = "1";
-      f_args[2] = node_ports[2];
-      if (i == NUM_NODES - 1) {
-				printf("[INFO TEST]: WITH PEER\n");
-        f_args[1] = "2";
-        f_args[2] = "3000";
-        f_args[2] = "3002";
-      }
-      fork_proc("./rpc_test", f_args);
-    }
+    // connects to 3001
+    f_args[0] = node_ports[0];
+    f_args[1] = "1";
+    f_args[2] = node_ports[1];
+    fork_proc("./rpc_test", f_args);
+
+    // connects to 3002
+    f_args[0] = node_ports[1];
+    f_args[1] = "1";
+    f_args[2] = node_ports[2];
+    fork_proc("./rpc_test", f_args);
+
+    // connects to 3001 and 3000
+    printf("[INFO TEST]: WITH PEERS\n");
+    f_args[0] = node_ports[2];
+    f_args[1] = "2";
+    f_args[2] = node_ports[0];
+    f_args[3] = node_ports[1];
+    fork_proc("./rpc_test", f_args);
   }
 
   printf("[TEST]: buidling nodes\n");
-  return 0;
+  sleep(20);
 }
