@@ -90,8 +90,15 @@ void get_peer_bucket(peer_bucket_t *(*table)[MAX_PEER_BUCKETS], const char *key,
   } while (current_key < MAX_PEER_BUCKETS);
 
   // (current_key...MAX_PEER_BUCKETS-1) yikes
-  printf("[INFO]: peer_bucket does not exist");
   *peer_bucket_buf = NULL;
+}
+
+void print_peers_from_bucket(peer_bucket_t **bucket, const char *key) {
+  printf("[INFO]: Printing peers\n");
+  for (int i = 0; i < (*bucket)->len; i++) {
+    printf("[PRINT]: ip=%s, port=%d, state=%d\n", (*bucket)->data[i]->ip,
+           (*bucket)->data[i]->port, (*bucket)->data[i]->state);
+  }
 }
 
 peer_bucket_t *new_peer_array() {
@@ -110,7 +117,7 @@ peer_bucket_t *new_peer_array() {
 // within maximum capacity, need to manually call resize
 // this function will be called within push function, to auto resize
 // on pushing new items in the array
-void resize_peer_array(peer_bucket_t *d_arr) {
+void _resize_peer_array(peer_bucket_t *d_arr) {
   const size_t twice = 2;
   // pointing to a block of memory
   void *ptr = realloc((*d_arr->data), (d_arr->cap * sizeof(peer_t)) * twice);
@@ -129,7 +136,7 @@ void resize_peer_array(peer_bucket_t *d_arr) {
 
 void push_peer(peer_bucket_t *d_arr, const peer_t data) {
   if (d_arr->len == d_arr->cap) {
-    resize_peer_array(d_arr);
+    _resize_peer_array(d_arr);
   }
   // d_arr->data +1;
   // increments the pointer by its stride N * sizeof(peer_t)

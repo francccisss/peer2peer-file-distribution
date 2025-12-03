@@ -21,8 +21,8 @@ typedef struct {
 int main(int argc, char **argv) {
   struct sockaddr_in src;
 
-  if (strcmp(argv[1], "") < 0) {
-    perror("[ERROR] port not defined");
+  if (argc < 2) {
+    printf("[ERROR] port not defined\n");
     return -1;
   }
   int host_port = atoi(argv[1]);
@@ -78,6 +78,8 @@ int main(int argc, char **argv) {
     t.tv_sec = max_time;
     t.tv_usec = 0;
 
+    // blocks until ready or timed out
+    // returns 0 on time out
     int retval = select(s_fd + 1, &rfd, NULL, NULL, &t);
 
     // when receiver receives a call to get_peers, this will also call join
@@ -91,15 +93,20 @@ int main(int argc, char **argv) {
         exit(retval);
       };
 
+      // the get_peers calls propagates to every existing nodes, and returns the
+      // peer result directly to the `source caller`, so the select will keep on
+      // waiting or will keep on receiving depending if there are more peers to
+      // be sent to the caller, since every node is sent indepdendently, then
+      // each node will all send back to the source caller indepdenendtly
+      // without the need to consider the state of each node, eg: if whether or
+      // not they send it is up to them, the `source caller` node will make do
+      // with the peers that he currently has and connect to them
       if (retval == 0) {
-        // still need to read the buffer from network device
         printf("polling Timed out\n");
         join_peers(s_fd, &node, file.file_hash);
         wait = false;
         continue;
       };
-      printf("request received\n");
-      exit(0);
     };
 
     int r = recvfrom(s_fd, &msg_buffer, sizeof(msg_buffer), 0, NULL, 0);
@@ -108,8 +115,8 @@ int main(int argc, char **argv) {
       exit(-1);
     }
     printf("request received\n");
-    // recv_rpc(s_fd, &node, file.file_hash, &msg_buffer, neighboring_nodes,
-    //          &wait);
+    recv_rpc(s_fd, &node, file.file_hash, &msg_buffer, neighboring_nodes,
+             &wait);
   }
 
   return 0;

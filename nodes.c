@@ -20,6 +20,7 @@ int join_peers(int s_fd, node_t *node, char info_hash[ID_SIZE]) {
   printf("[TEST LEN]: bucket_len=%ld\n", bucket_buf->len);
   if (bucket_buf->len == 0) {
     printf("[INFO]: there are no peers to join in hash=%s\n", info_hash);
+    printf("[INFO]: Exiting...\n");
     return 0;
   };
 
@@ -146,7 +147,7 @@ node_array *new_node_array() {
 // within maximum capacity, need to manually call resize
 // this function will be called within push function, to auto resize
 // on pushing new items in the array
-void resize_node_array(node_array *d_arr) {
+void _resize_node_array(node_array *d_arr) {
   const size_t twice = 2;
   // pointing to a block of memory
   void *ptr = realloc((*d_arr->data), (d_arr->cap * sizeof(node_t)) * twice);
@@ -165,7 +166,7 @@ void resize_node_array(node_array *d_arr) {
 
 void push_node(node_array *d_arr, const node_t data) {
   if (d_arr->len == d_arr->cap) {
-    resize_node_array(d_arr);
+    _resize_node_array(d_arr);
   }
   // d_arr->data +1;
   // increments the pointer by its stride N * sizeof(node_t)

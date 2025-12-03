@@ -9,7 +9,7 @@ test_rpc: rpc_test.c
 	gcc -Wall ./rpc_test.c ../peers.c ../remote_procedure.c ../nodes.c -o rpc_test 
 	echo "Compiled with warning args"
 
-test_client: rpc_test.c
+test_client: 
 	echo "BUILDING PEERS"
 	gcc -Wall -g  ./client_test.c ../peers.c ../remote_procedure.c ../nodes.c -o  client_test
 	echo "Compiled with warning args"

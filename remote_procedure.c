@@ -179,15 +179,16 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
       memcpy(&src_addr, &msg_buffer->body.cbody.payload, sizeof(origin));
       src_addr.port = ntohs(src_addr.port);
 
-      printf("[TEST]: src_addr ip=%s, port=%d\n", src_addr.ip,
-            src_addr.port);
+      printf("[TEST]: src_addr ip=%s, port=%d\n", src_addr.ip, src_addr.port);
 
       if (peer_bucket_buf->len == 0 && sorted_neighbors->len > 0) {
         printf("[TEST]: peers in bucket =%ld, sorted_neighbor len =%ld\n",
                peer_bucket_buf->len, sorted_neighbors->len);
         // pass in reply to
         get_peers(s_fd, node, sorted_neighbors, file_hash, src_addr, reply_to);
-        printf("[NOTIF]: peer bucket is empty, search neighbors from port %d.\n", node->port);
+        printf(
+            "[NOTIF]: peer bucket is empty, search neighbors from port %d.\n",
+            node->port);
         *wait = true;
         return 0;
       }
@@ -225,6 +226,15 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
         return 1;
       }
       set_peer(&node->peer_table, file_hash, new_peer);
+
+      peer_bucket_t **bucket_buf = malloc(sizeof(peer_bucket_t *));
+      get_peer_bucket(&node->peer_table, file_hash, bucket_buf);
+      if (bucket_buf == NULL) {
+        printf("[INFO]: Bucket does not exist\n");
+        return 0;
+      };
+
+				print_peers_from_bucket(bucket_buf,file_hash);
       break;
     }
 
