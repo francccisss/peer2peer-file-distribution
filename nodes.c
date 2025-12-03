@@ -1,4 +1,5 @@
 #include "nodes.h"
+#include "peers.h"
 #include "remote_procedure.h"
 #include <iso646.h>
 #include <stddef.h>
@@ -10,8 +11,8 @@
 #include <unistd.h>
 
 int join_peers(int s_fd, node_t *node, char info_hash[ID_SIZE]) {
-  peer_bucket_t *bucket_buf = malloc(sizeof(peer_bucket_t));
-  get_peer_bucket(&(node->peer_table), info_hash, &bucket_buf);
+  peer_bucket_t *bucket_buf = NULL;
+  get_peer_bucket(&node->peer_table, info_hash, &bucket_buf);
 
   if (bucket_buf == NULL) {
     printf("[INFO]: bucket does not exist for hash=%s\n", info_hash);
@@ -23,6 +24,8 @@ int join_peers(int s_fd, node_t *node, char info_hash[ID_SIZE]) {
     printf("[INFO]: Exiting...\n");
     return 0;
   };
+  printf("[LOG]: port=%d\n", (*bucket_buf->data)[0].port);
+  printf("[LOG]: port=%d\n", (*bucket_buf->data)[1].port);
 
   origin host = {.port = node->port};
   strcpy(host.ip, node->ip);

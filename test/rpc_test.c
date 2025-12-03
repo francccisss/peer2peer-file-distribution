@@ -93,13 +93,16 @@ int main(int argc, char **argv) {
                       .job_id = "job!!",
                       .state = LEECH_ST});
 
-  peer_bucket_t *peer_bucket_buf = malloc(sizeof(peer_bucket_t));
-  get_peer_bucket(&node.peer_table, file.file_hash, &peer_bucket_buf);
+    peer_bucket_t *peer_bucket_buf =NULL;
+    get_peer_bucket(&node.peer_table, file.file_hash, &peer_bucket_buf);
 
-  printf("[INFO]: peer len for host =%d -> len %ld\n", host_port,
-         peer_bucket_buf->len);
+    if (peer_bucket_buf == NULL) {
+      printf("[ERROR]: bucket buf unintialized\n");
+      exit(-1);
+    }
+
+    print_peers_from_bucket(peer_bucket_buf, file.file_hash);
   }
-
 
   rpc_msg msg_buffer;
   bool wait = false;

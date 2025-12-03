@@ -212,6 +212,8 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
     }
     case JOIN: {
       // when a node/peer receives a JOIN call from caller
+      printf("[INFO]: recevied join request\n");
+      printf("[INFO]: current peer host port=%d\n", node->port);
       peer_t new_peer = {
           .port = reply_to.port,
           .state = PASSIVE_ST,
@@ -222,24 +224,16 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
 
       if (r < 0) {
         printf("[ERROR REPLY]: Unable to send UDP datagram to "
-               "destination\nHost unreachable.");
+               "destination\nHost unreachable.\n");
         return 1;
       }
       set_peer(&node->peer_table, file_hash, new_peer);
 
-      peer_bucket_t **bucket_buf = malloc(sizeof(peer_bucket_t *));
-      get_peer_bucket(&node->peer_table, file_hash, bucket_buf);
-      if (bucket_buf == NULL) {
-        printf("[INFO]: Bucket does not exist\n");
-        return 0;
-      };
-
-				print_peers_from_bucket(bucket_buf,file_hash);
       break;
     }
 
     default:
-      printf("no existing call type");
+      printf("no existing call type\n");
       return 0;
     }
   } else {
@@ -271,19 +265,6 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
       // from unknown nodes that responds to the request. the node will only
       // join if atleast len == PEERS
 
-      peer_bucket_t *peer_bucket_buf = malloc(sizeof(peer_bucket_t));
-      if (peer_bucket_buf == NULL) {
-        perror("[ERROR] malloc");
-        return -1;
-      };
-
-      get_peer_bucket(&node->peer_table, file_hash, &peer_bucket_buf);
-
-      if (peer_bucket_buf == NULL) {
-        printf("[ERROR] empty bucket, could be an unintialized peer_table\n");
-        return -1;
-      };
-
       // timeout would only work if this function is called again.
       // eg: new datagram arrives -> is timedout?
       // then that means we are hoping for a new rpc reply to get_peers
@@ -295,11 +276,17 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
       for (int i = 0; i < len; i++) {
         set_peer(&node->peer_table, file_hash, p_buf[i]);
       };
-      for (int i = 0; i < len; i++) {
-        printf("[TEST CASTED BUF]: ip=%s, port=%d\n", p_buf[i].ip,
-               p_buf[i].port);
+
+      peer_bucket_t *peer_bucket_buf = NULL;
+
+      get_peer_bucket(&node->peer_table, file_hash, &peer_bucket_buf);
+
+      if (peer_bucket_buf == NULL) {
+        printf("[ERROR] empty bucket, could be an unintialized peer_table\n");
+        return -1;
       };
-      free(peer_bucket_buf);
+
+      print_peers_from_bucket(peer_bucket_buf, file_hash);
       return 0;
     };
     case JOIN: {
@@ -321,6 +308,7 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
       // passed by the sender, eg: wrong hash file, or hash file does not exist
       // in the table of the receiver
 
+      printf("[REPLY JOIN]\n");
       if (msg_buffer->body.rbody.status != OK) {
         printf("Unable to retrieve peers from nodes\n");
         return -1;

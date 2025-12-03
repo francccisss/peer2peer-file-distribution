@@ -93,11 +93,11 @@ void get_peer_bucket(peer_bucket_t *(*table)[MAX_PEER_BUCKETS], const char *key,
   *peer_bucket_buf = NULL;
 }
 
-void print_peers_from_bucket(peer_bucket_t **bucket, const char *key) {
+void print_peers_from_bucket(peer_bucket_t *bucket, const char *key) {
   printf("[INFO]: Printing peers\n");
-  for (int i = 0; i < (*bucket)->len; i++) {
-    printf("[PRINT]: ip=%s, port=%d, state=%d\n", (*bucket)->data[i]->ip,
-           (*bucket)->data[i]->port, (*bucket)->data[i]->state);
+  for (int i = 0; i < bucket->len; i++) {
+    printf("[PRINT]: ip=%s, port=%d, state=%d\n", (*bucket->data)[i].ip,
+           (*bucket->data)[i].port, (*bucket->data)[i].state);
   }
 }
 
