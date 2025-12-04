@@ -3,3 +3,4 @@ main
 tmp/
 test/main
 test/client_test
+test/rpc_test
