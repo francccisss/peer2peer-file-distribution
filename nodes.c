@@ -36,7 +36,6 @@ int join_peers(int s_fd, node_t *node, char info_hash[ID_SIZE]) {
     strcpy(destination.ip, cur_peer.ip);
     call_rpc(s_fd, JOIN, NULL, 0, destination, host);
   };
-  free(bucket_buf);
   return 0;
 }
 
