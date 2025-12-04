@@ -100,6 +100,7 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
 
   // decode msg_buffer's additional information
   msg_buffer->body.cbody.method = ntohs(msg_buffer->body.cbody.method);
+  msg_buffer->body.rbody.method = ntohs(msg_buffer->body.rbody.method);
   msg_buffer->segment_count = ntohl(msg_buffer->segment_count);
   msg_buffer->segment_number = ntohl(msg_buffer->segment_number);
   msg_buffer->msg_type = ntohs(msg_buffer->msg_type);
@@ -137,14 +138,14 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
         return 0;
       }
 
-      peer_bucket_t *peer_bucket_buf = malloc(sizeof(peer_bucket_t));
+      peer_bucket_t *peer_bucket_buf = NULL;
+
+      get_peer_bucket(&node->peer_table, hash, &peer_bucket_buf);
+
       if (peer_bucket_buf == NULL) {
         perror("[ERROR]: malloc");
         return -1;
       };
-
-      get_peer_bucket(&node->peer_table, hash, &peer_bucket_buf);
-
       // check if table exists
       if (peer_bucket_buf == NULL) {
         // only send the len which is the first byte of the buffer
@@ -156,7 +157,6 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
         if (r < 0) {
           printf("[ERROR]: Unable to send datagram back to caller\n");
         }
-        free(peer_bucket_buf);
         return r;
       }
 
@@ -171,7 +171,6 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
         if (r < 0) {
           printf("[ERROR]: Unable to send datagram back to caller\n");
         }
-        free(peer_bucket_buf);
         return r;
       }
 
@@ -207,7 +206,6 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
       reply_rpc(s_fd, msg_buffer->body.cbody.method, buffer,
                 sizeof(peer_t) * peer_bucket_buf->len + 1, src_addr,
                 msg_buffer->correlation_id, OK);
-      free(peer_bucket_buf);
       *wait = false;
       return 0;
     }
@@ -293,7 +291,7 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
       if (peer_bucket_buf->len >= INITIAL_CAP) {
         printf("[INFO]: joining %ld peers\n", peer_bucket_buf->len);
         join_peers(s_fd, node, file_hash);
-					*wait = false;
+        *wait = false;
       }
       break;
     };
