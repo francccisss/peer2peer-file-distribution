@@ -8,7 +8,7 @@
 #define HASH_OFFSET 2166136261u
 #define PRIME 16777619u
 #define MAX_PEER_BUCKETS 10
-#define INITIAL_CAP 8
+#define INITIAL_CAP 2
 
 // determines the current state of the peer
 // used for notifying other peers what the current peer

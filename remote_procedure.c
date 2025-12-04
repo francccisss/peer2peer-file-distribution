@@ -208,6 +208,7 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
                 sizeof(peer_t) * peer_bucket_buf->len + 1, src_addr,
                 msg_buffer->correlation_id, OK);
       free(peer_bucket_buf);
+      *wait = false;
       return 0;
     }
     case JOIN: {
@@ -227,6 +228,7 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
                "destination\nHost unreachable.\n");
         return 1;
       }
+      printf("[INFO]: join reply sent\n");
       set_peer(&node->peer_table, file_hash, new_peer);
 
       break;
@@ -287,7 +289,13 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
       };
 
       print_peers_from_bucket(peer_bucket_buf, file_hash);
-      return 0;
+
+      if (peer_bucket_buf->len >= INITIAL_CAP) {
+        printf("[INFO]: joining %ld peers\n", peer_bucket_buf->len);
+        join_peers(s_fd, node, file_hash);
+					*wait = false;
+      }
+      break;
     };
     case JOIN: {
 
@@ -308,11 +316,11 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
       // passed by the sender, eg: wrong hash file, or hash file does not exist
       // in the table of the receiver
 
-      printf("[REPLY JOIN]\n");
       if (msg_buffer->body.rbody.status != OK) {
         printf("Unable to retrieve peers from nodes\n");
         return -1;
       };
+      printf("[INFO]: successfully joined %s\n", file_hash);
       break;
     }
     default:

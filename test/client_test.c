@@ -72,43 +72,33 @@ int main(int argc, char **argv) {
   struct timeval t;
   uint8_t max_time = 4;
 
+  // NOTICE: this only works for a single file hash
+  peer_bucket_t *peer_bucket_buf = NULL;
+  get_peer_bucket(&node.peer_table, file.file_hash, &peer_bucket_buf);
+  if (peer_bucket_buf == NULL) {
+    printf("[ERROR]: bucket was unintialized\n");
+  }
+
   while (1) {
-    FD_ZERO(&rfd);
-    FD_SET(s_fd, &rfd);
-    t.tv_sec = max_time;
-    t.tv_usec = 0;
 
-    // blocks until ready or timed out
-    // returns 0 on time out
-    int retval = select(s_fd + 1, &rfd, NULL, NULL, &t);
-
-    // when receiver receives a call to get_peers, this will also call join
-    // peers which should not happen, join peers should only happen on the newly
-    // connecting node
-    printf("huh\n");
     if (wait) {
+      FD_ZERO(&rfd);
+      FD_SET(s_fd, &rfd);
+      t.tv_sec = max_time;
+      t.tv_usec = 0;
 
+      int retval = select(s_fd + 1, &rfd, NULL, NULL, &t);
       if (retval < 0) {
         perror("[ERROR] select");
         exit(retval);
       };
-
-      // the get_peers calls propagates to every existing nodes, and returns the
-      // peer result directly to the `source caller`, so the select will keep on
-      // waiting or will keep on receiving depending if there are more peers to
-      // be sent to the caller, since every node is sent indepdendently, then
-      // each node will all send back to the source caller indepdenendtly
-      // without the need to consider the state of each node, eg: if whether or
-      // not they send it is up to them, the `source caller` node will make do
-      // with the peers that he currently has and connect to them
       if (retval == 0) {
-        printf("polling Timed out\n");
+        printf("[INFO]: polling timed out\n");
+        printf("[INFO]: joining %ld peers\n", peer_bucket_buf->len);
         join_peers(s_fd, &node, file.file_hash);
-        wait = false;
         continue;
-      };
-    };
-
+      }
+    }
     int r = recvfrom(s_fd, &msg_buffer, sizeof(msg_buffer), 0, NULL, 0);
     if (r == -1) {
       perror("[ERROR] Socket bind");
