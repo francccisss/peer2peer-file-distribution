@@ -19,11 +19,8 @@ int join_peers(int s_fd, node_t *node, char info_hash[ID_SIZE]) {
     return 0;
   };
   printf("[TEST LEN]: bucket_len=%ld\n", bucket_buf->len);
-  if (bucket_buf->len == 0) {
-    printf("[INFO]: there are no peers to join in hash=%s\n", info_hash);
-    printf("[INFO]: Exiting...\n");
-    return 0;
-  };
+  if (bucket_buf->len == 0) return 1;
+
   printf("[LOG]: port=%d\n", (*bucket_buf->data)[0].port);
   printf("[LOG]: port=%d\n", (*bucket_buf->data)[1].port);
 

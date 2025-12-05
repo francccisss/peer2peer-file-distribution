@@ -67,15 +67,9 @@ void sig_handler(int signo) {
     printf("[INFO]: Closing child processes\n");
     for (int i = 0; i < child_pid_list_len; i++) {
       pid_t c_pid = child_pid_list[i];
-      int r = kill(c_pid, signo);
+      int r = kill(c_pid, SIGINT);
       if (r == 1) {
         printf("[ERROR]: unable to exit child process %d", c_pid);
-      }
-      int w_cpid = wait(&status);
-      if (w_cpid == c_pid) {
-        printf("wcpid =%d, c_pid=%d\n", w_cpid, c_pid);
-        printf("status =%d\n", status);
-        continue;
       }
     }
     printf("[INFO]: Closing processes\n");

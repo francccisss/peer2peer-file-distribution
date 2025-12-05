@@ -100,7 +100,7 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
 
   // decode msg_buffer's additional information
   msg_buffer->body.cbody.method = ntohs(msg_buffer->body.cbody.method);
-  msg_buffer->body.rbody.method = ntohs(msg_buffer->body.rbody.method);
+  // msg_buffer->body.rbody.method = ntohs(msg_buffer->body.rbody.method);
   msg_buffer->segment_count = ntohl(msg_buffer->segment_count);
   msg_buffer->segment_number = ntohl(msg_buffer->segment_number);
   msg_buffer->msg_type = ntohs(msg_buffer->msg_type);
@@ -290,7 +290,12 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
 
       if (peer_bucket_buf->len >= INITIAL_CAP) {
         printf("[INFO]: joining %ld peers\n", peer_bucket_buf->len);
-        join_peers(s_fd, node, file_hash);
+        int r = join_peers(s_fd, node, file_hash);
+        if (r != 0) {
+          printf("[INFO]: there are no peers to join in hash=%s\n", file_hash);
+          printf("[INFO]: Exiting...\n");
+          exit(r);
+        }
         *wait = false;
       }
       break;

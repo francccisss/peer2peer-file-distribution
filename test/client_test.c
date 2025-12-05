@@ -1,5 +1,6 @@
 
 #include <arpa/inet.h>
+#include <asm-generic/errno-base.h>
 #include <bits/types/struct_timeval.h>
 #include <netinet/in.h>
 #include <stdint.h>
@@ -44,7 +45,7 @@ int main(int argc, char **argv) {
   int s_fd = socket(AF_INET, SOCK_DGRAM, 0);
   int r = bind(s_fd, (struct sockaddr *)&src, sizeof(src));
 
-  if (r == -1) {
+  if (r != 0) {
     perror("[ERROR] Socket bind");
     exit(-1);
   }
@@ -63,6 +64,17 @@ int main(int argc, char **argv) {
   strcpy(absolute_address.ip, node.ip);
   init_peer_table(&node.peer_table);
 
+  struct sockaddr_in get_sock;
+  socklen_t len = sizeof(get_sock);
+  int gr = getsockname(s_fd, (struct sockaddr *)&get_sock, &len);
+  if (gr != 0) {
+    perror("[ERROR]: getsockname");
+    exit(gr);
+  }
+
+  printf("[TEST]: other nodes area reading big endianess of port -> %d\n",
+         get_sock.sin_port);
+  printf("[TEST]: getsock port: flipped %d\n", ntohs(get_sock.sin_port));
   get_peers(s_fd, &node, neighboring_nodes, file.file_hash, absolute_address,
             absolute_address);
 
@@ -95,7 +107,13 @@ int main(int argc, char **argv) {
       if (retval == 0) {
         printf("[INFO]: polling timed out\n");
         printf("[INFO]: joining %ld peers\n", peer_bucket_buf->len);
-        join_peers(s_fd, &node, file.file_hash);
+        int r = join_peers(s_fd, &node, file.file_hash);
+        if (r != 0) {
+          printf("[INFO]: there are no peers to join in hash=%s\n",
+                 file.file_hash);
+          printf("[INFO]: Exiting...\n");
+          exit(r);
+        }
         continue;
       }
     }
