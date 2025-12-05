@@ -62,14 +62,25 @@ typedef char **fork_args;
 // use either SIGINT OR SIGTERM
 void sig_handler(int signo) {
   printf("[INFO]: Interrupt received\n");
-  int status;
   if (signo == SIGINT || signo == SIGTERM) {
     printf("[INFO]: Closing child processes\n");
     for (int i = 0; i < child_pid_list_len; i++) {
+      int status;
       pid_t c_pid = child_pid_list[i];
-      int r = kill(c_pid, SIGINT);
-      if (r == 1) {
-        printf("[ERROR]: unable to exit child process %d", c_pid);
+      int r = kill(0, SIGINT);
+      if (r != 0) {
+        printf("[ERROR]: unable to kill child process c_pid=%d\n", c_pid);
+      }
+      int w_cpid = waitpid(c_pid, &status, 0);
+      if (WIFCONTINUED(status)) {
+        printf("[ERROR]: returned c_pid from wait =%d, current c_pid =%d\n",
+               w_cpid, c_pid);
+        printf("[ERROR]: unable to wait for child process status=%d\n", status);
+        exit(-1);
+      }
+      if (WIFEXITED(status) == 0 && w_cpid == c_pid) {
+        printf("wcpid =%d, c_pid=%d\n", w_cpid, c_pid);
+        printf("status =%d\n", status);
       }
     }
     printf("[INFO]: Closing processes\n");
