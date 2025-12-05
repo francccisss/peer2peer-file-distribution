@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
 
   node_array *BOOTSTRAP_NODES = new_node_array();
 
-  if (strcmp(argv[1], "") < 0) {
+  if (argc < 1) {
     perror("[ERROR] port not defined");
     return -1;
   }
