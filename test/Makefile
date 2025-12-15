@@ -1,5 +1,4 @@
-c_files =  ../peers.c ../remote_procedure.c ../nodes.c
-
+c_files =  ../peers.c ../remote_procedure.c ../nodes.c ../lib/cjson/cJSON.c
 
 build_run: rpc_test 
 	echo "Runningrpc"

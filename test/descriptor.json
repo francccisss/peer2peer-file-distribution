@@ -1,0 +1,12 @@
+{
+	"name": "ubuntu.iso",
+	"file": [
+		{
+			"length": 500,
+			"path": "/path/to/file"
+		}
+	],
+	"size": 3000,
+	"piece_length": 6,
+	"hash_key": 13
+}

@@ -2,6 +2,7 @@
 #include <arpa/inet.h>
 #include <asm-generic/errno-base.h>
 #include <bits/types/struct_timeval.h>
+#include <fcntl.h>
 #include <netinet/in.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -9,7 +10,9 @@
 #include <string.h>
 #include <sys/select.h>
 #include <sys/socket.h>
+#include <unistd.h>
 
+#include "../lib/cjson/cJSON.h"
 #include "../nodes.h"
 #include "../remote_procedure.h"
 
@@ -19,24 +22,49 @@ typedef struct {
   struct node_t **known_nodes;
 } file_info;
 
+#define FILE_BUFFER_SIZE 256
+
 int main(int argc, char **argv) {
   struct sockaddr_in src;
+  char buffer[FILE_BUFFER_SIZE];
 
   if (argc < 2) {
     printf("[ERROR] port not defined\n");
     return -1;
   }
-  int host_port = atoi(argv[1]);
-  int neighbor_port = atoi(argv[2]);
+  char *file_path = argv[2];
 
+  int df_file = open(file_path, O_RDONLY);
+  if (df_file < 0) {
+    fprintf(stderr, "[ERROR]: \n");
+    return df_file;
+  }
+  int read_bytes;
+  while ((read_bytes = read(df_file, buffer, FILE_BUFFER_SIZE)) > 0) {
+    if (read_bytes < 0) {
+      perror("[ERROR] reading from df_file\n");
+      return df_file;
+    }
+  };
+  printf("[TEST]: json data string = %s\n", buffer);
+
+  cJSON *df_json = cJSON_Parse(buffer);
+
+  if (df_json == NULL) {
+    fprintf(stderr, "[ERROR]: Unable to parse Json data\n");
+    return 1;
+  }
+
+  return 0;
+
+  // // what is being distributed
+  int host_port = atoi(argv[1]);
   printf("host_port=%d\n", host_port);
   node_t node = {
       .id = "14",
       .ip = "localhost",
       .port = host_port,
   };
-
-  // what is being distributed
   file_info file = {.file_hash = "13", .date_created = "November 6 2025"};
   src.sin_family = AF_INET;
   src.sin_port = htons(node.port);
@@ -56,8 +84,9 @@ int main(int argc, char **argv) {
   // of reusing the same process
   // compare_hash(node.neighbors, N_COUNT, file.file_hash, closest_neighbors);
 
-  push_node(neighboring_nodes,
-            (node_t){.distance = 1, .ip = "localhost", .port = neighbor_port});
+  // push_node(neighboring_nodes,
+  //           (node_t){.distance = 1, .ip = "localhost", .port =
+  //           neighbor_port});
 
   // assigning the absolute address of the caller
   origin absolute_address = {.port = node.port};
