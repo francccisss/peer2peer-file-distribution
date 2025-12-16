@@ -171,6 +171,8 @@ void push_node(node_array *d_arr, const node_t data) {
   // increments the pointer by its stride N * sizeof(node_t)
   // (*d_arr->data)[0];
   // increments from the array itself by sizeof(node_t)
+
+// copies direct memory values instead of memory reference
   memcpy(&(*d_arr->data)[d_arr->len], &data, sizeof(node_t));
   d_arr->len++;
 }

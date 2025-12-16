@@ -89,8 +89,6 @@ int main(int argc, char **argv) {
     printf("[TEST]: port=%d\n\n", (*neighboring_nodes->data)[i].port);
   }
 
-  return 0;
-
   // assigning the absolute address of the caller
   origin absolute_address = {.port = node.port};
   strcpy(absolute_address.ip, node.ip);
