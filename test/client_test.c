@@ -22,6 +22,8 @@ typedef struct {
   uint64_t length;
   char *name;
   char *path;
+  origin **nodes;
+  uint16_t node_len;
 } desciptor_file;
 
 #define FILE_BUFFER_SIZE 256
@@ -168,7 +170,6 @@ int parse_json_descriptor(char *descriptor_path, desciptor_file *file) {
     return 1;
   }
 
-  // #TODO: get the array of peers and files
   cJSON *f = cJSON_GetObjectItemCaseSensitive(df_json, "file");
 
   if (f == NULL && !cJSON_IsObject(f)) {
@@ -214,6 +215,45 @@ int parse_json_descriptor(char *descriptor_path, desciptor_file *file) {
     return 1;
   }
 
+  cJSON *f_nodes = cJSON_GetObjectItemCaseSensitive(df_json, "nodes");
+  if (f_nodes == NULL) {
+    fprintf(stderr, "[ERROR]: {nodes} key does not exist\n");
+    return 1;
+  }
+  if (!cJSON_IsArray(f_nodes)) {
+    fprintf(stderr, "[ERROR]: {nodes} key is is not Array\n");
+    return 1;
+  }
+
+  cJSON *el = NULL;
+  int arr_size = cJSON_GetArraySize(f_nodes);
+  file->nodes = malloc(arr_size * sizeof(origin *));
+  int i = 0;
+  cJSON_ArrayForEach(el, f_nodes) {
+    cJSON *f_ip = cJSON_GetObjectItemCaseSensitive(el, "ip");
+    cJSON *f_port = cJSON_GetObjectItemCaseSensitive(el, "port");
+
+    if (f_ip == NULL || f_port == NULL) {
+      fprintf(stderr, "[ERROR]: does not exist\n");
+      return 1;
+    }
+
+    if (!cJSON_IsString(f_ip)) {
+      fprintf(stderr, "[ERROR]: ip not String\n");
+      return 1;
+    }
+
+    if (!cJSON_IsNumber(f_port)) {
+      fprintf(stderr, "[ERROR]: port not Number\n");
+      return 1;
+    }
+    origin *new_node = malloc(sizeof(origin));
+    (*new_node).port = f_port->valueint;
+    strcpy(new_node->ip, f_ip->valuestring);
+    file->nodes[i] = new_node;
+  }
+
+  file->node_len = arr_size;
   strcpy(file->file_hash, f_hk->valuestring);
   file->piece_length = f_pclen->valueint;
 
@@ -222,6 +262,10 @@ int parse_json_descriptor(char *descriptor_path, desciptor_file *file) {
   printf("[TEST] length=%ld\n", file->length);
   printf("[TEST] hash=%s\n", file->file_hash);
   printf("[TEST] piece_length=%d\n", file->piece_length);
+
+  for (int i = 0; i < file->node_len; i++) {
+    printf("[TEST] node[%d].port=%d\n", i,file->nodes[i]->port);
+  }
 
   return 0;
 }
