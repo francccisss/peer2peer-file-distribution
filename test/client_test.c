@@ -44,10 +44,9 @@ int main(int argc, char **argv) {
     return 1;
   };
 
-  return 0;
   // // what is being distributed
   int host_port = atoi(argv[1]);
-  printf("host_port=%d\n", host_port);
+  printf("[INFO]: host_port=%d\n", host_port);
   node_t node = {
       .id = "14",
       .ip = "localhost",
@@ -71,9 +70,26 @@ int main(int argc, char **argv) {
   // of reusing the same process
   // compare_hash(node.neighbors, N_COUNT, file.file_hash, closest_neighbors);
 
-  // push_node(neighboring_nodes,
-  //           (node_t){.distance = 1, .ip = "localhost", .port =
-  //           neighbor_port});
+  printf("\n\n[INFO]: Bootstrapping nodes...\n");
+  for (int i = 0; i < file.node_len; i++) {
+
+    // node ID will be used to calculate
+    // XOR and apply result to distance
+    origin *current_node_origin = file.nodes[i];
+    node_t new_node = {
+        .id = "Assign an ID", .distance = 0, .port = file.nodes[i]->port};
+    strcpy(current_node_origin->ip, new_node.ip);
+    push_node(neighboring_nodes, new_node);
+  }
+  printf("[INFO]: Bootstrapping done.\n");
+  printf("[INFO]: Neighboring nodes:\n");
+  for (int i = 0; i < neighboring_nodes->len; i++) {
+    printf("[TEST]: neighbor number=%d id=%s\n", i + 1,
+           (*neighboring_nodes->data)[i].id);
+    printf("[TEST]: port=%d\n\n", (*neighboring_nodes->data)[i].port);
+  }
+
+  return 0;
 
   // assigning the absolute address of the caller
   origin absolute_address = {.port = node.port};
@@ -264,7 +280,7 @@ int parse_json_descriptor(char *descriptor_path, desciptor_file *file) {
   printf("[TEST] piece_length=%d\n", file->piece_length);
 
   for (int i = 0; i < file->node_len; i++) {
-    printf("[TEST] node[%d].port=%d\n", i,file->nodes[i]->port);
+    printf("[TEST] node[%d].port=%d\n", i, file->nodes[i]->port);
   }
 
   return 0;
