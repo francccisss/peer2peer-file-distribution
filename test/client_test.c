@@ -70,24 +70,7 @@ int main(int argc, char **argv) {
   // of reusing the same process
   // compare_hash(node.neighbors, N_COUNT, file.file_hash, closest_neighbors);
 
-  printf("\n\n[INFO]: Bootstrapping nodes...\n");
-  for (int i = 0; i < file.node_len; i++) {
-
-    // node ID will be used to calculate
-    // XOR and apply result to distance
-    origin *current_node_origin = file.nodes[i];
-    node_t new_node = {
-        .id = "Assign an ID", .distance = 0, .port = file.nodes[i]->port};
-    strcpy(current_node_origin->ip, new_node.ip);
-    push_node(neighboring_nodes, new_node);
-  }
-  printf("[INFO]: Bootstrapping done.\n");
-  printf("[INFO]: Neighboring nodes:\n");
-  for (int i = 0; i < neighboring_nodes->len; i++) {
-    printf("[TEST]: neighbor number=%d id=%s\n", i + 1,
-           (*neighboring_nodes->data)[i].id);
-    printf("[TEST]: port=%d\n\n", (*neighboring_nodes->data)[i].port);
-  }
+  bootstrap_neigbors(file.nodes, file.node_len, neighboring_nodes);
 
   // assigning the absolute address of the caller
   origin absolute_address = {.port = node.port};

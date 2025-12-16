@@ -17,9 +17,9 @@ typedef struct {
   struct node_t **known_nodes;
 } file_info;
 
+// remove bootstrapping function
 int main(int argc, char *argv[]) {
 
-  pthread_t pth_id;
   node_array *BOOTSTRAP_NODES = new_node_array();
 
   push_node(BOOTSTRAP_NODES, (node_t){.id = "55", .ip = "", .port = 5432});

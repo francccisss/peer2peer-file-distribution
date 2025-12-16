@@ -19,7 +19,8 @@ int join_peers(int s_fd, node_t *node, char info_hash[ID_SIZE]) {
     return 0;
   };
   printf("[TEST LEN]: bucket_len=%ld\n", bucket_buf->len);
-  if (bucket_buf->len == 0) return 1;
+  if (bucket_buf->len == 0)
+    return 1;
 
   printf("[LOG]: port=%d\n", (*bucket_buf->data)[0].port);
   printf("[LOG]: port=%d\n", (*bucket_buf->data)[1].port);
@@ -88,9 +89,24 @@ int get_peers(int s_fd, node_t *node, node_array *sorted_neighbors,
   return 0;
 };
 
-void bootstrap_neigbors(node_array *src, size_t n_count, node_array *dst) {
+void bootstrap_neigbors(origin **nodes, size_t n_count, node_array *dst) {
+  printf("\n\n[INFO]: Bootstrapping nodes...\n");
   for (int i = 0; i < n_count; i++) {
-    push_node(dst, (*src->data)[i]);
+    // node ID will be used to calculate
+    // XOR and apply result to distance
+    origin *current_node_origin = nodes[i];
+
+    node_t new_node = {
+        .id = "Assign an ID", .distance = 0, .port = (*nodes)[i].port};
+    strcpy(current_node_origin->ip, new_node.ip);
+    push_node(dst, new_node);
+
+  }
+  printf("[INFO]: Bootstrapping done.\n");
+  printf("[INFO]: Neighboring nodes:\n");
+  for (int i = 0; i < n_count; i++) {
+    printf("[TEST]: neighbor number=%d id=%s\n", i + 1, (*dst->data)[i].id);
+    printf("[TEST]: port=%d\n\n", (*dst->data[i]).port);
   }
 };
 
@@ -172,7 +188,7 @@ void push_node(node_array *d_arr, const node_t data) {
   // (*d_arr->data)[0];
   // increments from the array itself by sizeof(node_t)
 
-// copies direct memory values instead of memory reference
+  // copies direct memory values instead of memory reference
   memcpy(&(*d_arr->data)[d_arr->len], &data, sizeof(node_t));
   d_arr->len++;
 }

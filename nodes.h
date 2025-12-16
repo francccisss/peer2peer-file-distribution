@@ -31,7 +31,7 @@ typedef struct {
   char ip[INET_ADDRSTRLEN];
 } origin;
 
-void bootstrap_neigbors(node_array *src, size_t n_count, node_array *dst);
+void bootstrap_neigbors(origin **nodes, size_t n_count, node_array *dst);
 
 /*
  * returns back an array of neighbors within close proximity to the f0ile
@@ -61,7 +61,8 @@ void XORdistance(char info_hash[ID_SIZE], node_t *node);
 // - `sorted_neighbors` the array of the neighboring nodes of the current `node`
 // will iterate to send an `rpc_call` to `get_peers`
 // - `info_hash` well.
-// - `src_addr` indicates the `source` of the caller that initated the `get_peers` chain
+// - `src_addr` indicates the `source` of the caller that initated the
+// `get_peers` chain
 // - `reply_to` is the origin of the node that called this current node to
 // `get_peers`. not to be confused with the `src_addr` which is the original
 // caller that initated the `GET_PEERS` chain call.
