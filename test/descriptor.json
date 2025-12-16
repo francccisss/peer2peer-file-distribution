@@ -1,12 +1,16 @@
 {
-	"name": "ubuntu.iso",
-	"file": [
-		{
-			"length": 500,
-			"path": "/path/to/file"
-		}
-	],
 	"size": 3000,
-	"piece_length": 6,
-	"hash_key": 13
+	"piece_length": 50,
+	"hash_key": "13",
+	"file": {
+		"length": 500,
+		"name": "ubuntu.iso",
+		"path": "./"
+	},
+	"nodes": [
+		{
+			"ip": "localhost",
+			"port": 3001
+		}
+	]
 }
