@@ -86,7 +86,7 @@ int reply_rpc(int s_fd, METHOD method, void *payload, size_t payload_sz,
   return 0;
 };
 
-int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
+int recv_rpc(int s_fd, node_t *node, char hash_key[ID_SIZE],
              rpc_msg *msg_buffer, node_array *sorted_neighbors, bool *wait) {
 
   // grab the port and address of the caller that initiated the request defined
@@ -142,25 +142,10 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
 
       get_peer_bucket(&node->peer_table, hash, &peer_bucket_buf);
 
-      if (peer_bucket_buf == NULL) {
-        perror("[ERROR]: malloc");
-        return -1;
-      };
       // check if table exists
+      // table exists only when a node joins a torrent or when a peer uploads a
+      // file which sets both its file_table and peer_table using the hash key
       if (peer_bucket_buf == NULL) {
-        // only send the len which is the first byte of the buffer
-        printf("[NOTIF]: no peer table entry\n");
-        uint8_t buffer[1];
-        buffer[0] = 0;
-        int r = reply_rpc(s_fd, msg_buffer->body.cbody.method, buffer, 1,
-                          reply_to, msg_buffer->correlation_id, OK);
-        if (r < 0) {
-          printf("[ERROR]: Unable to send datagram back to caller\n");
-        }
-        return r;
-      }
-
-      if (sorted_neighbors->len == 0 && peer_bucket_buf->len == 0) {
         // reply back to the caller with empty peer and 0 len
         // only send the len which is the first byte of the buffer
         printf("[NOTIF]: no peer table entry\n");
@@ -174,6 +159,12 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
         return r;
       }
 
+      if (peer_bucket_buf->len == 0 && sorted_neighbors->len == 0) {
+        // check file_table if the file data chunks exist using hash_key as the
+        // key to file_table, and if it exists, then add the requester (src) as a peer
+					// and then send a peer list that contains the current node only, so that it adds the processing node as a peer also
+      }
+
       origin src_addr;
       memcpy(&src_addr, &msg_buffer->body.cbody.payload, sizeof(origin));
       src_addr.port = ntohs(src_addr.port);
@@ -184,7 +175,7 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
         printf("[TEST]: peers in bucket =%ld, sorted_neighbor len =%ld\n",
                peer_bucket_buf->len, sorted_neighbors->len);
         // pass in reply to
-        get_peers(s_fd, node, sorted_neighbors, file_hash, src_addr, reply_to);
+        get_peers(s_fd, node, sorted_neighbors, hash_key, src_addr, reply_to);
         printf(
             "[NOTIF]: peer bucket is empty, search neighbors from port %d.\n",
             node->port);
@@ -227,7 +218,7 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
         return 1;
       }
       printf("[INFO]: join reply sent\n");
-      set_peer(&node->peer_table, file_hash, new_peer);
+      set_peer(&node->peer_table, hash_key, new_peer);
 
       break;
     }
@@ -274,25 +265,25 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
 
       memcpy(&p_buf, msg_buffer->body.rbody.payload + 1, sizeof(peer_t) * len);
       for (int i = 0; i < len; i++) {
-        set_peer(&node->peer_table, file_hash, p_buf[i]);
+        set_peer(&node->peer_table, hash_key, p_buf[i]);
       };
 
       peer_bucket_t *peer_bucket_buf = NULL;
 
-      get_peer_bucket(&node->peer_table, file_hash, &peer_bucket_buf);
+      get_peer_bucket(&node->peer_table, hash_key, &peer_bucket_buf);
 
       if (peer_bucket_buf == NULL) {
         printf("[ERROR] empty bucket, could be an unintialized peer_table\n");
         return -1;
       };
 
-      print_peers_from_bucket(peer_bucket_buf, file_hash);
+      print_peers_from_bucket(peer_bucket_buf, hash_key);
 
       if (peer_bucket_buf->len >= INITIAL_CAP) {
         printf("[INFO]: joining %ld peers\n", peer_bucket_buf->len);
-        int r = join_peers(s_fd, node, file_hash);
+        int r = join_peers(s_fd, node, hash_key);
         if (r != 0) {
-          printf("[INFO]: there are no peers to join in hash=%s\n", file_hash);
+          printf("[INFO]: there are no peers to join in hash=%s\n", hash_key);
           printf("[INFO]: Exiting...\n");
           exit(r);
         }
@@ -323,7 +314,7 @@ int recv_rpc(int s_fd, node_t *node, char file_hash[ID_SIZE],
         printf("Unable to retrieve peers from nodes\n");
         return -1;
       };
-      printf("[INFO]: successfully joined %s\n", file_hash);
+      printf("[INFO]: successfully joined %s\n", hash_key);
       break;
     }
     default:
