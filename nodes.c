@@ -100,7 +100,6 @@ void bootstrap_neigbors(origin **nodes, size_t n_count, node_array *dst) {
         .id = "Assign an ID", .distance = 0, .port = (*nodes)[i].port};
     strcpy(current_node_origin->ip, new_node.ip);
     push_node(dst, new_node);
-
   }
   printf("[INFO]: Bootstrapping done.\n");
   printf("[INFO]: Neighboring nodes:\n");

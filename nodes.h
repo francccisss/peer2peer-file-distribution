@@ -54,6 +54,7 @@ void compare_hash(node_array *neighbors, size_t n_count,
 
 void XORdistance(char info_hash[ID_SIZE], node_t *node);
 
+// #TODO: recursive depth
 // calling get_peers on behalf of the initial caller:
 // - `s_fd` socket file descriptor
 // - `node` extract the `origin` of the current node to be used

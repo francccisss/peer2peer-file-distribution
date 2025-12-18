@@ -138,6 +138,26 @@ int recv_rpc(int s_fd, node_t *node, char hash_key[ID_SIZE],
         return 0;
       }
 
+      // TODO: first check if a file entry exists
+      // it makes sense that a node/peer should have the peers of a distributed
+      // file within a group/torrent, a node/peer is assumed to be or has been a
+      // part of it if there exists a peer bucket and/or a file entry in the
+      // file table, at the start if a node uploads its file, it creates a peer
+      // entry as well as a file entry within each of its corresponding tables
+      // so to check if a file entry exist then we can assume that it has peers,
+      // and if so return those peers to the src, else if exists but no peers
+      // then the current node and src node can add each other as peers
+      //
+      // if (file == NULL || peer_bucket.length == 0){
+      //
+      // no need to check len of neighbor since src does not care if a node
+      // returns a peer or not until it timesout
+      //    send get peers to next neighbors of the current node
+      // }
+      //  ... send back peers to src
+      // merge everything under this block
+      //
+
       peer_bucket_t *peer_bucket_buf = NULL;
 
       get_peer_bucket(&node->peer_table, hash, &peer_bucket_buf);
@@ -161,8 +181,9 @@ int recv_rpc(int s_fd, node_t *node, char hash_key[ID_SIZE],
 
       if (peer_bucket_buf->len == 0 && sorted_neighbors->len == 0) {
         // check file_table if the file data chunks exist using hash_key as the
-        // key to file_table, and if it exists, then add the requester (src) as a peer
-					// and then send a peer list that contains the current node only, so that it adds the processing node as a peer also
+        // key that maps to the data chunks, and if it exists, then add the
+        // requester (src) as a peer and then send a peer list that contains the
+        // current node only, so that it adds the processing node as a peer
       }
 
       origin src_addr;

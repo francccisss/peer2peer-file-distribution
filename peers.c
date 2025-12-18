@@ -18,7 +18,7 @@ void init_peer_table(peer_bucket_t *(*unint_table)[MAX_PEER_BUCKETS]) {
   // i)) and increments the pointer value by base_ptr + scale *
   // sizeof(peer_bucket pointers)
   for (int i = 0; i < MAX_PEER_BUCKETS; ++i) {
-    (*(*unint_table + i)) = new_peer_array();
+    (*unint_table) [i] = new_peer_array();
   };
 };
 

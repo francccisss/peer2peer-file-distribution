@@ -17,8 +17,6 @@ typedef struct {
   struct node_t **known_nodes;
 } file_info;
 
-// #TODO: 
-// need to generate json file if a node is to upload or seed a local file
 int main(int argc, char *argv[]) {
 
   node_array *BOOTSTRAP_NODES = new_node_array();

@@ -16,6 +16,11 @@ client_test: client_test.c
 	gcc -Wall -g  ./client_test.c $(c_files) -o client_test
 	echo "Compiled with warning args"
 
+file_test: file_test.c
+	echo "BUILDING file_test"
+	gcc -Wall -g  ./file_test.c $(c_files) -o file_test
+	echo "Compiled with warning args"
+
 .PHONY: clean
 clean:
 	rm -rf rpc_test client_test main
